@@ -98,7 +98,7 @@ ${(lesson.content ?? "").slice(0, 6000)}
 
     const { error: upErr } = await supabase
       .from("lessons")
-      .update({ content, updated_at: new Date().toISOString() })
+      .update({ content })
       .eq("id", data.lessonId);
     if (upErr) throw upErr;
 
