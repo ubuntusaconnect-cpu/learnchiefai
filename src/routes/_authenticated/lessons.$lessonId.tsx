@@ -1,17 +1,40 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { MarkdownView } from "@/components/app/MarkdownView";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
-import { useSession } from "@/lib/roles";
+import { useSession, useRoles, primaryRole } from "@/lib/roles";
+import { enhanceLesson } from "@/lib/lessons.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { CheckCircle2, Bookmark, ArrowLeft, PlayCircle } from "lucide-react";
+import { CheckCircle2, Bookmark, ArrowLeft, Clock, ListTree, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/lessons/$lessonId")({
   component: LessonPage,
 });
+
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function extractHeadings(md: string): { id: string; text: string }[] {
+  const out: { id: string; text: string }[] = [];
+  const seen = new Set<string>();
+  for (const line of (md ?? "").split("\n")) {
+    const m = /^##\s+(.+?)\s*$/.exec(line);
+    if (!m) continue;
+    let id = slugify(m[1]);
+    let i = 2;
+    while (seen.has(id)) id = `${slugify(m[1])}-${i++}`;
+    seen.add(id);
+    out.push({ id, text: m[1] });
+  }
+  return out;
+}
+
 
 function LessonPage() {
   const { lessonId } = Route.useParams();
