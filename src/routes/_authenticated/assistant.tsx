@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect, useRef } from "react";
 import { z } from "zod";
-import ReactMarkdown from "react-markdown";
+import { MarkdownView } from "@/components/app/MarkdownView";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { useSession } from "@/lib/roles";
@@ -157,9 +157,9 @@ function AssistantPage() {
                       <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground"><Bot className="h-4 w-4" /></div>
                     )}
                     <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-gradient-primary text-primary-foreground" : "bg-muted"}`}>
-                      <div className="prose prose-sm max-w-none dark:prose-invert prose-pre:my-2 prose-p:my-1">
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
-                      </div>
+                      <MarkdownView className="prose prose-sm max-w-none dark:prose-invert prose-pre:my-2 prose-p:my-1">
+                        {m.content}
+                      </MarkdownView>
                     </div>
                   </div>
                 ))}

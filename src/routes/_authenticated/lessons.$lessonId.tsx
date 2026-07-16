@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import ReactMarkdown from "react-markdown";
+import { MarkdownView } from "@/components/app/MarkdownView";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { useSession } from "@/lib/roles";
@@ -95,9 +95,9 @@ function LessonPage() {
           )}
 
           <Card className="mt-6 p-6">
-            <div className="prose prose-sm max-w-none dark:prose-invert">
-              <ReactMarkdown>{lesson.content ?? "_Notes coming soon._"}</ReactMarkdown>
-            </div>
+            <MarkdownView className="prose prose-sm max-w-none dark:prose-invert">
+              {lesson.content ?? "_Notes coming soon._"}
+            </MarkdownView>
           </Card>
         </div>
 
