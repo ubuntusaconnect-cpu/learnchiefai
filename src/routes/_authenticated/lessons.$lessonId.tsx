@@ -39,7 +39,10 @@ function extractHeadings(md: string): { id: string; text: string }[] {
 function LessonPage() {
   const { lessonId } = Route.useParams();
   const { data: user } = useSession();
+  const { data: roles } = useRoles(user?.id);
+  const canEnhance = primaryRole(roles) === "admin" || primaryRole(roles) === "teacher";
   const qc = useQueryClient();
+  const enhanceFn = useServerFn(enhanceLesson);
 
   const { data: lesson, isLoading } = useQuery({
     queryKey: ["lesson", lessonId],
