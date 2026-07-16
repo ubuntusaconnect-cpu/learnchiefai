@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { useSession, useRoles, primaryRole } from "@/lib/roles";
+import { enhanceLesson, listAllLessonIds } from "@/lib/lessons.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ShieldAlert, Users, Megaphone, BookOpen, Trash2 } from "lucide-react";
+import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -37,13 +39,77 @@ function AdminPage() {
         <TabsList>
           <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" /> Users</TabsTrigger>
           <TabsTrigger value="subjects"><BookOpen className="mr-2 h-4 w-4" /> Subjects</TabsTrigger>
+          <TabsTrigger value="content"><Sparkles className="mr-2 h-4 w-4" /> Content</TabsTrigger>
           <TabsTrigger value="announcements"><Megaphone className="mr-2 h-4 w-4" /> Announcements</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="mt-4"><UsersPanel /></TabsContent>
         <TabsContent value="subjects" className="mt-4"><SubjectsPanel /></TabsContent>
+        <TabsContent value="content" className="mt-4"><ContentPanel /></TabsContent>
         <TabsContent value="announcements" className="mt-4"><AnnouncementsPanel /></TabsContent>
       </Tabs>
     </AppShell>
+  );
+}
+
+function ContentPanel() {
+  const listFn = useServerFn(listAllLessonIds);
+  const enhanceFn = useServerFn(enhanceLesson);
+  const [status, setStatus] = useState<{ done: number; total: number; current?: string; errors: string[] } | null>(null);
+  const [running, setRunning] = useState(false);
+
+  async function run() {
+    setRunning(true);
+    try {
+      const lessons = await listFn({ data: undefined as any });
+      const errors: string[] = [];
+      setStatus({ done: 0, total: lessons.length, errors: [] });
+      for (let i = 0; i < lessons.length; i++) {
+        const l = lessons[i];
+        setStatus({ done: i, total: lessons.length, current: l.title, errors: [...errors] });
+        try {
+          await enhanceFn({ data: { lessonId: l.id } });
+        } catch (e: any) {
+          errors.push(`${l.title}: ${e?.message ?? "failed"}`);
+        }
+      }
+      setStatus({ done: lessons.length, total: lessons.length, errors });
+      toast.success(`Enhanced ${lessons.length - errors.length} of ${lessons.length} lessons`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to start");
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  const pct = status ? Math.round((status.done / Math.max(1, status.total)) * 100) : 0;
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-primary/10 p-3 text-primary"><Sparkles className="h-5 w-5" /></div>
+        <div>
+          <h2 className="text-lg font-semibold">Enhance every lesson with AI</h2>
+          <p className="text-sm text-muted-foreground">Rewrites every lesson into the full textbook structure (objectives, worked examples, callouts, quiz, homework). Runs sequentially to stay under rate limits.</p>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button onClick={run} disabled={running}>{running ? "Enhancing…" : "Enhance all lessons"}</Button>
+      </div>
+      {status && (
+        <div className="mt-6 space-y-2">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-gradient-primary transition-all" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="text-sm text-muted-foreground">{status.done} / {status.total}{status.current ? ` — ${status.current}` : ""}</div>
+          {status.errors.length > 0 && (
+            <details className="mt-2 rounded-lg border bg-destructive/5 p-3 text-xs">
+              <summary className="cursor-pointer font-medium text-destructive">{status.errors.length} error(s)</summary>
+              <ul className="mt-2 list-disc space-y-1 pl-5">{status.errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
+            </details>
+          )}
+        </div>
+      )}
+    </Card>
   );
 }
 

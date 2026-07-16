@@ -1,22 +1,48 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { MarkdownView } from "@/components/app/MarkdownView";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
-import { useSession } from "@/lib/roles";
+import { useSession, useRoles, primaryRole } from "@/lib/roles";
+import { enhanceLesson } from "@/lib/lessons.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { CheckCircle2, Bookmark, ArrowLeft, PlayCircle } from "lucide-react";
+import { CheckCircle2, Bookmark, ArrowLeft, Clock, ListTree, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/lessons/$lessonId")({
   component: LessonPage,
 });
 
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function extractHeadings(md: string): { id: string; text: string }[] {
+  const out: { id: string; text: string }[] = [];
+  const seen = new Set<string>();
+  for (const line of (md ?? "").split("\n")) {
+    const m = /^##\s+(.+?)\s*$/.exec(line);
+    if (!m) continue;
+    let id = slugify(m[1]);
+    let i = 2;
+    while (seen.has(id)) id = `${slugify(m[1])}-${i++}`;
+    seen.add(id);
+    out.push({ id, text: m[1] });
+  }
+  return out;
+}
+
+
 function LessonPage() {
   const { lessonId } = Route.useParams();
   const { data: user } = useSession();
+  const { data: roles } = useRoles(user?.id);
+  const canEnhance = primaryRole(roles) === "admin" || primaryRole(roles) === "teacher";
   const qc = useQueryClient();
+  const enhanceFn = useServerFn(enhanceLesson);
 
   const { data: lesson, isLoading } = useQuery({
     queryKey: ["lesson", lessonId],
@@ -70,8 +96,29 @@ function LessonPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["bookmark"] }); qc.invalidateQueries({ queryKey: ["bookmarks-list"] }); },
   });
 
+  const content = lesson?.content ?? "";
+  const headings = useMemo(() => extractHeadings(content), [content]);
+  const readingMins = useMemo(() => {
+    const words = content.trim().split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.round(words / 220));
+  }, [content]);
+
+  const enhance = useMutation({
+    mutationFn: () => enhanceFn({ data: { lessonId } }),
+    onSuccess: () => { toast.success("Lesson enhanced with AI ✨"); qc.invalidateQueries({ queryKey: ["lesson", lessonId] }); },
+    onError: (e: any) => toast.error(e.message ?? "Failed to enhance"),
+  });
+
   if (isLoading) return <AppShell><Card className="h-96 animate-pulse" /></AppShell>;
   if (!lesson) return <AppShell><p>Lesson not found.</p></AppShell>;
+
+  // Attach heading ids so the outline can scroll.
+  const contentWithIds = content.replace(/^(##\s+)(.+?)\s*$/gm, (_, hash, text, offset, full) => {
+    // count previous ## occurrences to compute id via extractHeadings order
+    const before = full.slice(0, offset).match(/^##\s+.+$/gm)?.length ?? 0;
+    const h = headings[before];
+    return h ? `${hash}<a id="${h.id}"></a>${text}` : `${hash}${text}`;
+  });
 
   return (
     <AppShell>
@@ -79,10 +126,14 @@ function LessonPage() {
         <ArrowLeft className="h-4 w-4" /> Back to {lesson.modules.courses.title}
       </Link>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div>
+      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+        <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-primary">{lesson.modules.title}</div>
-          <h1 className="mt-2 text-3xl font-bold">{lesson.title}</h1>
+          <h1 className="mt-2 text-3xl font-bold md:text-4xl">{lesson.title}</h1>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {readingMins} min read</span>
+            {lesson.duration_minutes ? <span>• {lesson.duration_minutes} min lesson</span> : null}
+          </div>
 
           {lesson.video_url && (
             <div className="mt-6 aspect-video overflow-hidden rounded-2xl border bg-black">
@@ -94,14 +145,12 @@ function LessonPage() {
             </div>
           )}
 
-          <Card className="mt-6 p-6">
-            <MarkdownView className="prose prose-sm max-w-none dark:prose-invert">
-              {lesson.content ?? "_Notes coming soon._"}
-            </MarkdownView>
+          <Card className="mt-6 p-6 md:p-8">
+            <MarkdownView>{contentWithIds || "_Notes coming soon._"}</MarkdownView>
           </Card>
         </div>
 
-        <aside className="space-y-3">
+        <aside className="space-y-3 lg:sticky lg:top-20 lg:self-start">
           <Card className="p-5">
             <h3 className="font-semibold">Your progress</h3>
             <Button className="mt-3 w-full" disabled={progress?.completed || markComplete.isPending} onClick={() => markComplete.mutate()}>
@@ -111,6 +160,20 @@ function LessonPage() {
               <Bookmark className={`mr-2 h-4 w-4 ${bookmark ? "fill-primary text-primary" : ""}`} /> {bookmark ? "Bookmarked" : "Bookmark"}
             </Button>
           </Card>
+
+          {headings.length > 0 && (
+            <Card className="p-5">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold"><ListTree className="h-4 w-4" /> On this page</h3>
+              <nav className="space-y-1 text-sm">
+                {headings.map((h) => (
+                  <a key={h.id} href={`#${h.id}`} className="block truncate rounded px-2 py-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+                    {h.text}
+                  </a>
+                ))}
+              </nav>
+            </Card>
+          )}
+
           <Card className="p-5">
             <h3 className="font-semibold">Need help?</h3>
             <p className="mt-1 text-xs text-muted-foreground">Ask the AI Study Assistant about this lesson.</p>
@@ -118,6 +181,16 @@ function LessonPage() {
               <Link to="/assistant" search={{ topic: lesson.title }}>Open AI Assistant</Link>
             </Button>
           </Card>
+
+          {canEnhance && (
+            <Card className="p-5">
+              <h3 className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" /> Author tools</h3>
+              <p className="mt-1 text-xs text-muted-foreground">Rewrite this lesson with the full textbook structure using AI.</p>
+              <Button className="mt-3 w-full" onClick={() => enhance.mutate()} disabled={enhance.isPending}>
+                {enhance.isPending ? "Enhancing…" : "Enhance with AI"}
+              </Button>
+            </Card>
+          )}
         </aside>
       </div>
     </AppShell>
