@@ -95,9 +95,9 @@ function LessonPage() {
           )}
 
           <Card className="mt-6 p-6">
-            <div className="prose prose-sm max-w-none dark:prose-invert">
-              <ReactMarkdown>{lesson.content ?? "_Notes coming soon._"}</ReactMarkdown>
-            </div>
+            <MarkdownView className="prose prose-sm max-w-none dark:prose-invert">
+              {lesson.content ?? "_Notes coming soon._"}
+            </MarkdownView>
           </Card>
         </div>
 
