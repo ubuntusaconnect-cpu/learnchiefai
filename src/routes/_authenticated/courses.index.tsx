@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Search, BookOpen } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/courses")({
+export const Route = createFileRoute("/_authenticated/courses/")({
   component: CoursesPage,
 });
 
