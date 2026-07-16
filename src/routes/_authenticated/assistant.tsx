@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect, useRef } from "react";
 import { z } from "zod";
-import ReactMarkdown from "react-markdown";
+import { MarkdownView } from "@/components/app/MarkdownView";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
 import { useSession } from "@/lib/roles";
