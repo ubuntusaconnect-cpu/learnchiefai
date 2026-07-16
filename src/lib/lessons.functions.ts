@@ -105,11 +105,8 @@ ${(lesson.content ?? "").slice(0, 6000)}
     return { ok: true, length: content.length };
   });
 
-const ListInput = z.object({}).optional();
-
 export const listAllLessonIds = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => ListInput.parse(data))
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
