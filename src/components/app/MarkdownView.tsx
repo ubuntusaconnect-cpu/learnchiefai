@@ -2,6 +2,9 @@ import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
+import rehypeSlug from "rehype-slug";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { Lightbulb, AlertTriangle, Info, Sparkles, GraduationCap, BookOpen, Sigma, CheckCircle2, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -48,25 +51,85 @@ const KIND_ALIASES: Record<string, CalloutKind> = {
   vocab: "vocab", vocabulary: "vocab", glossary: "vocab",
 };
 
-// Convert :::kind [title]\n ... \n::: fenced callouts to HTML divs the renderer will style.
+// Strip disallowed inline/block HTML the AI might emit despite instructions.
+// We preserve <svg>…</svg> (educational diagrams) and our own callout <div data-callout>.
+function stripUnsafeHtml(md: string): string {
+  return md
+    // Remove <script>/<style> blocks entirely
+    .replace(/<\s*(script|style)[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    // Remove anchor tags but keep inner text
+    .replace(/<\s*a\b[^>]*>([\s\S]*?)<\s*\/\s*a\s*>/gi, "$1")
+    .replace(/<\s*a\b[^>]*\/?\s*>/gi, "")
+    // Remove <span> wrappers but keep inner text
+    .replace(/<\s*span\b[^>]*>([\s\S]*?)<\s*\/\s*span\s*>/gi, "$1")
+    // Remove bare <div> wrappers unless they are our callouts (data-callout)
+    .replace(/<\s*div\b(?![^>]*data-callout)[^>]*>/gi, "")
+    .replace(/<\s*\/\s*div\s*>(?![\s\S]*?data-callout)/gi, (m, offset, full) => {
+      // keep closing divs that pair with callout openers; approximate by leaving them —
+      // sanitizer strips anything not in the schema anyway.
+      return m;
+    })
+    // Convert <br> to newlines
+    .replace(/<\s*br\s*\/?\s*>/gi, "\n")
+    // Remove <p>/<pre>/<code>/<img>/<table> HTML — force Markdown equivalents
+    .replace(/<\s*\/?\s*(p|pre|code|img|table|thead|tbody|tr|td|th|ul|ol|li|h[1-6]|hr|blockquote|strong|em|b|i|u)\b[^>]*>/gi, "");
+}
+
+// Convert :::kind [title]\n ... \n::: fenced callouts to HTML divs.
 // Also normalizes LaTeX \( \) and \[ \] delimiters into $...$ / $$...$$.
 function preprocess(md: string): string {
   const normalized = (md ?? "")
     .replace(/\\\[([\s\S]+?)\\\]/g, (_, expr) => `\n$$${expr}$$\n`)
     .replace(/\\\(([\s\S]+?)\\\)/g, (_, expr) => `$${expr}$`);
 
-  return normalized.replace(
+  const cleaned = stripUnsafeHtml(normalized);
+
+  return cleaned.replace(
     /^:::\s*([a-zA-Z][\w-]*)(?:\s+([^\n]+))?\n([\s\S]*?)\n:::\s*$/gm,
     (_, rawKind: string, title: string | undefined, body: string) => {
       const kind = KIND_ALIASES[rawKind.toLowerCase()] ?? "note";
       const t = (title ?? "").trim();
-      // Use a fenced div via a bespoke HTML wrapper markdown extension: we emit
-      // a plain HTML block that our components will detect by data-callout attr.
       const safeTitle = t ? t.replace(/"/g, "&quot;") : "";
       return `\n<div data-callout="${kind}" data-title="${safeTitle}">\n\n${body.trim()}\n\n</div>\n`;
     },
   );
 }
+
+// Sanitize schema: allow standard markdown output + our callout div + inline SVG diagrams + KaTeX.
+const sanitizeSchema: any = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    div: [["className"], "data-callout", "data-title"],
+    code: [...(defaultSchema.attributes?.code ?? []), ["className"]],
+    span: [...(defaultSchema.attributes?.span ?? []), ["className"], ["style"], "aria-hidden"],
+    "*": [...(defaultSchema.attributes?.["*"] ?? []), "id", "className"],
+    svg: ["viewBox", "width", "height", "xmlns", "fill", "stroke", "strokeWidth", "className"],
+    g: ["fill", "stroke", "strokeWidth", "transform", "opacity"],
+    path: ["d", "fill", "stroke", "strokeWidth", "strokeLinecap", "strokeLinejoin", "opacity"],
+    rect: ["x", "y", "width", "height", "rx", "ry", "fill", "stroke", "strokeWidth", "opacity"],
+    circle: ["cx", "cy", "r", "fill", "stroke", "strokeWidth", "opacity"],
+    ellipse: ["cx", "cy", "rx", "ry", "fill", "stroke", "strokeWidth"],
+    line: ["x1", "y1", "x2", "y2", "stroke", "strokeWidth", "strokeLinecap", "strokeDasharray"],
+    polyline: ["points", "fill", "stroke", "strokeWidth"],
+    polygon: ["points", "fill", "stroke", "strokeWidth"],
+    text: ["x", "y", "fill", "fontSize", "fontFamily", "textAnchor", "dominantBaseline", "fontWeight", "transform"],
+    tspan: ["x", "y", "dx", "dy", "fill", "fontSize", "fontWeight"],
+    defs: [],
+    marker: ["id", "viewBox", "refX", "refY", "markerWidth", "markerHeight", "orient"],
+    linearGradient: ["id", "x1", "y1", "x2", "y2"],
+    stop: ["offset", "stopColor", "stopOpacity"],
+    title: [],
+  },
+  tagNames: [
+    ...(defaultSchema.tagNames ?? []),
+    "div",
+    "svg", "g", "path", "rect", "circle", "ellipse", "line",
+    "polyline", "polygon", "text", "tspan", "defs", "marker",
+    "linearGradient", "stop", "title",
+  ],
+  // Explicitly reject: script, style, iframe, form, input, a with javascript:, etc.
+};
 
 function Callout({ kind, title, children }: { kind: CalloutKind; title?: string; children: ReactNode }) {
   const meta = CALLOUT_META[kind];
@@ -87,7 +150,6 @@ export function MarkdownView({ children, className, ...rest }: Props) {
   return (
     <div
       className={cn(
-        // Rich typography scoped so it always looks like a textbook without needing @tailwindcss/typography.
         "text-[15px] leading-7 text-foreground",
         "[&_h1]:mt-8 [&_h1]:mb-3 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:tracking-tight",
         "[&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:scroll-mt-24 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:border-b [&_h2]:pb-2",
@@ -104,6 +166,7 @@ export function MarkdownView({ children, className, ...rest }: Props) {
         "[&_thead]:bg-muted/60 [&_th]:border [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-semibold",
         "[&_td]:border [&_td]:px-3 [&_td]:py-2 [&_tr:nth-child(even)]:bg-muted/30",
         "[&_img]:my-5 [&_img]:mx-auto [&_img]:max-h-[520px] [&_img]:rounded-xl [&_img]:border [&_img]:shadow-card",
+        "[&_svg]:my-5 [&_svg]:mx-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:rounded-xl [&_svg]:border [&_svg]:bg-background [&_svg]:p-3 [&_svg]:shadow-card",
         "[&_hr]:my-8 [&_hr]:border-border",
         "[&_.katex-display]:my-4 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden",
         className,
@@ -111,7 +174,12 @@ export function MarkdownView({ children, className, ...rest }: Props) {
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]}
+        rehypePlugins={[
+          rehypeRaw,
+          [rehypeSanitize, sanitizeSchema],
+          rehypeSlug,
+          [rehypeKatex, { strict: false, throwOnError: false, output: "html" }],
+        ]}
         components={{
           div: ({ node, className: cls, children, ...props }: any) => {
             const kind = props["data-callout"] as CalloutKind | undefined;

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import GithubSlugger from "github-slugger";
 import { MarkdownView } from "@/components/app/MarkdownView";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/AppShell";
@@ -16,21 +17,15 @@ export const Route = createFileRoute("/_authenticated/lessons/$lessonId")({
   component: LessonPage,
 });
 
-function slugify(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-}
-
+// Match rehype-slug (which uses github-slugger) so TOC anchors line up with heading IDs.
 function extractHeadings(md: string): { id: string; text: string }[] {
+  const slugger = new GithubSlugger();
   const out: { id: string; text: string }[] = [];
-  const seen = new Set<string>();
   for (const line of (md ?? "").split("\n")) {
     const m = /^##\s+(.+?)\s*$/.exec(line);
     if (!m) continue;
-    let id = slugify(m[1]);
-    let i = 2;
-    while (seen.has(id)) id = `${slugify(m[1])}-${i++}`;
-    seen.add(id);
-    out.push({ id, text: m[1] });
+    const text = m[1].replace(/[*_`]/g, "").trim();
+    out.push({ id: slugger.slug(text), text });
   }
   return out;
 }
@@ -112,13 +107,7 @@ function LessonPage() {
   if (isLoading) return <AppShell><Card className="h-96 animate-pulse" /></AppShell>;
   if (!lesson) return <AppShell><p>Lesson not found.</p></AppShell>;
 
-  // Attach heading ids so the outline can scroll.
-  const contentWithIds = content.replace(/^(##\s+)(.+?)\s*$/gm, (_, hash, text, offset, full) => {
-    // count previous ## occurrences to compute id via extractHeadings order
-    const before = full.slice(0, offset).match(/^##\s+.+$/gm)?.length ?? 0;
-    const h = headings[before];
-    return h ? `${hash}<a id="${h.id}"></a>${text}` : `${hash}${text}`;
-  });
+  // Heading IDs are generated automatically by rehype-slug inside MarkdownView.
 
   return (
     <AppShell>
@@ -146,7 +135,7 @@ function LessonPage() {
           )}
 
           <Card className="mt-6 p-6 md:p-8">
-            <MarkdownView>{contentWithIds || "_Notes coming soon._"}</MarkdownView>
+            <MarkdownView>{content || "_Notes coming soon._"}</MarkdownView>
           </Card>
         </div>
 
