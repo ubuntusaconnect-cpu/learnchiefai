@@ -135,7 +135,7 @@ function LessonPage() {
           )}
 
           <Card className="mt-6 p-6 md:p-8">
-            <MarkdownView>{contentWithIds || "_Notes coming soon._"}</MarkdownView>
+            <MarkdownView>{content || "_Notes coming soon._"}</MarkdownView>
           </Card>
         </div>
 
