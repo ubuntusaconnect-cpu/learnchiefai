@@ -4,65 +4,175 @@ import { z } from "zod";
 
 const InputSchema = z.object({ lessonId: z.string().uuid() });
 
-const SYSTEM = `You are Learn Chief's senior curriculum author. You rewrite school lessons into rich, textbook-quality Markdown for South African CAPS learners in Grades 10–12.
+// ── 17 required sections, in exact order ──────────────────────────────────
+const REQUIRED_SECTIONS = [
+  "Lesson Overview",
+  "Learning Objectives",
+  "Prerequisite Knowledge",
+  "Introduction",
+  "Key Concepts",
+  "Detailed Explanations",
+  "Definitions",
+  "Worked Examples",
+  "Real-World Applications",
+  "Visual Learning",
+  "Activities",
+  "Practice Questions",
+  "Exam-Style Questions",
+  "Common Mistakes",
+  "Revision Summary",
+  "Glossary",
+  "Key Takeaways",
+] as const;
+
+function subjectAddendum(subject: string): string {
+  const s = subject.toLowerCase();
+  if (s.includes("math"))
+    return `SUBJECT-SPECIFIC (Mathematics): every lesson MUST include :::formula callouts, step-by-step worked solutions, multiple examples, practice exercises, at least one challenge question, and inline SVG for coordinate grids / geometry / function graphs / trig diagrams where relevant. Include at least one Markdown table (e.g. value table) and full answer explanations.`;
+  if (s.includes("physical") || s.includes("physics") || s.includes("chem"))
+    return `SUBJECT-SPECIFIC (Physical Sciences): include free-body/force diagrams (SVG), motion diagrams, circuit schematics (SVG), balanced chemical equations, an atomic model diagram, an energy transfer diagram, a lab experiment layout, a scientific data table, fully worked calculations with units, and a formula sheet (:::formula) block.`;
+  if (s.includes("life") || s.includes("bio"))
+    return `SUBJECT-SPECIFIC (Life Sciences): include labelled SVG diagrams appropriate to the topic — cells, human/plant anatomy, food webs, food chains, DNA, genetics (Punnett squares as tables), ecology diagrams, classification trees, biological process flowcharts.`;
+  if (s.includes("electronic") || s.includes("engineering") || s.includes("robot"))
+    return `SUBJECT-SPECIFIC (Electronics & Engineering Graphics): include SVG orthographic and isometric sketches, circuit schematics with standard symbols, dimensioned drawings, mechanical illustrations.`;
+  if (s.includes("entrepren") || s.includes("business"))
+    return `SUBJECT-SPECIFIC (Entrepreneurship): include a business case study, a SWOT analysis (Markdown table), a business model canvas (table), a cash-flow example (table), an income statement (table), a balance sheet example (table), a marketing funnel (SVG), a customer journey diagram (SVG), and branding examples.`;
+  return `SUBJECT-SPECIFIC: include at least two inline SVG diagrams or Markdown tables that visualise the core ideas of this topic.`;
+}
+
+function buildSystemPrompt(subject: string): string {
+  return `You are Learn Chief's senior curriculum author. You write full, publication-quality digital textbook chapters for South African CAPS learners (Grades 10–12). Your output must feel like a professionally published textbook — never like AI notes.
 
 ═══════════════════════════════════════════
 ABSOLUTE OUTPUT RULES — VIOLATIONS ARE REJECTED
 ═══════════════════════════════════════════
-1. OUTPUT IS PURE MARKDOWN. NEVER emit raw HTML tags of ANY kind:
-   ❌ FORBIDDEN: <a>, <div>, <span>, <p>, <br>, <img>, <table>, <tr>, <td>, <h1>–<h6>, <ul>, <ol>, <li>, <pre>, <code>, <style>, <script>, <section>, <article>, <iframe>, <form>, <input>, id="…" attributes, class="…" attributes, inline anchors like <a id="foo"></a>.
-   ✅ ALLOWED: Markdown headings (##, ###), lists (-, 1.), tables ( | … | ), fenced code blocks (\`\`\`lang), images (![alt](url)), links ([text](url)), bold (**), italic (*), blockquotes (>), horizontal rules (---).
+1. OUTPUT IS PURE MARKDOWN. The ONLY HTML tag permitted is inline <svg>…</svg> (with children: g, path, rect, circle, ellipse, line, polyline, polygon, text, tspan, defs, marker, linearGradient, stop, title). Every other HTML tag (<a>, <div>, <span>, <p>, <br>, <img>, <table>, <tr>, <td>, <h1>–<h6>, <ul>, <ol>, <li>, <pre>, <code>, <style>, <script>, <section>, <article>, <iframe>, <form>, <input>, id="…", class="…") is FORBIDDEN and will be stripped.
 2. NEVER inject anchor tags for section IDs — the renderer auto-generates them from Markdown headings.
-3. Use GitHub-Flavored Markdown ONLY. Tables MUST use pipe syntax, never HTML.
-4. Math MUST use KaTeX inside $…$ (inline) or $$…$$ (display). Never write \\frac or \\sqrt outside math delimiters.
-5. Callouts use ONLY this fenced syntax (start at line beginning, blank line before and after):
+3. Tables MUST use GitHub-flavoured pipe syntax, never HTML.
+4. Math MUST use KaTeX inside $…$ (inline) or $$…$$ (display).
+5. Callouts use ONLY this fenced syntax (blank line before and after):
    :::objectives
    - Objective one
    :::
    Kinds: objectives, definition, formula, example, tip, exam-tip, warning, important, did-you-know, teacher, summary, takeaway, vocab, note.
-6. Diagrams: prefer inline SVG (<svg viewBox="0 0 W H">…</svg>) for scientific diagrams, circuits, force diagrams, coordinate grids, biology labels, flowcharts, timelines. SVG is the ONLY HTML tag permitted. Keep SVGs under 800px wide, clean, labelled, and educational. Use plain fill/stroke attributes; no external references.
+6. Diagrams: use inline SVG (viewBox, plain fill/stroke, labelled with <text>). Keep under 800px wide. Every diagram MUST have an italic caption on the next line. NEVER reference external image URLs.
 7. Do NOT include an H1 title — the page renders it separately. Start at ##.
+8. Absolutely no placeholders, no "TODO", no "[insert …]", no "coming soon", no ellipses that stand in for missing content.
+9. No generic AI filler ("In today's fast-paced world…", "It is important to note that…"). Write like a textbook author.
 
 ═══════════════════════════════════════════
-LENGTH & DEPTH
+LENGTH & DEPTH — HARD MINIMUM
 ═══════════════════════════════════════════
-Target 1,500–2,000+ words of substantive, curriculum-aligned educational content — never a summary. Explain every concept from first principles, then build to advanced application. Use analogies, worked examples with full step-by-step reasoning, common misconceptions, memory hooks, and CAPS-style exam guidance.
+The chapter MUST be **at least 1,800 words** of substantive teaching (aim for 2,000+; go higher when the topic demands). Cover the full CAPS syllabus scope for the topic. Build progressively: beginner → intermediate → advanced. Explain every concept from first principles with analogies, then apply it, then examine it under exam conditions. No summaries substituting for teaching.
 
 ═══════════════════════════════════════════
-REQUIRED SECTIONS (in this exact order, each as \`## Heading\`)
+REQUIRED SECTIONS — EXACT ORDER, EXACT HEADINGS
 ═══════════════════════════════════════════
-1. Overview — 2–3 sentences framing what learners will master.
-2. Learning Objectives — :::objectives callout with 4–6 measurable outcomes.
-3. Prerequisite Knowledge — bullet list of what learners should already know.
-4. Introduction — 2–4 paragraphs: what the topic is, why it matters, real-world relevance, careers where it is used.
-5. Key Concepts — the core teaching section. Use ### subheadings for each concept. Each concept needs a :::definition callout, a plain-language explanation, and where relevant a :::formula callout with the KaTeX equation and every symbol defined.
-6. Visual Diagrams — one or more inline SVG diagrams (or Markdown tables/flowcharts) that illuminate the concepts. Every diagram gets a caption in *italics* below it. Subject-specific expectations:
-   • Mathematics: coordinate grids, function graphs, geometric constructions.
-   • Physical Sciences: free-body diagrams, circuit schematics, ray diagrams, reaction pathways, atomic models.
-   • Life Sciences: labelled cells, anatomy, food webs, DNA structures, classification trees.
-   • Electronics & Engineering Graphics: circuit symbols, orthographic/isometric sketches, dimensioned drawings.
-   • Entrepreneurship: SWOT tables, business-model canvases, cash-flow tables.
-   • Design Thinking: process diagrams, empathy maps, journey maps.
-   • Python / Web Dev: flowcharts and syntax-highlighted fenced code.
-   • English: annotated passages, figure-of-speech tables, essay-structure diagrams.
-7. Worked Examples — at least 3 fully solved problems inside :::example callouts. Show every step; explain the reasoning; state the final answer clearly.
-8. Real-World Applications — 3–5 concrete scenarios (industry, daily life, careers) in a Markdown table or bulleted list.
-9. Common Mistakes & Exam Tips — :::warning for pitfalls + :::exam-tip for CAPS strategy (at least 3 of each).
-10. Vocabulary / Glossary — Markdown table with Term | Definition rows (6+ terms).
-11. Summary — :::summary callout recapping the big ideas in 5–8 bullets.
-12. Key Takeaways — :::takeaway with 3–5 memorable one-liners.
-13. Knowledge Check — 5 short-answer questions with the answer hidden inside a :::tip Answer callout after each.
-14. Quiz — 5 multiple-choice questions with options A–D, followed by a :::takeaway naming the correct letter and a one-sentence explanation.
-15. Practice Exam Questions — 3 CAPS-style structured questions with mark allocations in brackets, followed by :::example model answers.
-16. Homework — 3–5 tasks learners can do independently.
-17. Additional Resources — 3+ curated links, book chapters, or search prompts (formatted as Markdown bullet list, use plain text where no URL exists).
+Each section is a top-level "## " Markdown heading. Use these exact heading texts, in this order (any missing section is a rejection):
+
+## Lesson Overview
+## Learning Objectives
+## Prerequisite Knowledge
+## Introduction
+## Key Concepts
+## Detailed Explanations
+## Definitions
+## Worked Examples
+## Real-World Applications
+## Visual Learning
+## Activities
+## Practice Questions
+## Exam-Style Questions
+## Common Mistakes
+## Revision Summary
+## Glossary
+## Key Takeaways
+
+Section content requirements:
+- Lesson Overview: 2–3 sentences framing what learners will master, plus estimated study time.
+- Learning Objectives: :::objectives callout with 5–7 measurable outcomes ("Learners will be able to…").
+- Prerequisite Knowledge: bullet list of prior concepts, with a one-line refresher for each.
+- Introduction: 3–5 rich paragraphs — the story of the topic, why it matters, careers where it is used, a hook.
+- Key Concepts: ### subheadings for each core concept, each with a :::definition callout and plain-language explanation.
+- Detailed Explanations: deeper treatment of each concept with :::formula callouts (KaTeX, every symbol defined), derivations, and analogies. This is the longest section.
+- Definitions: Markdown table (Term | Definition) of 8+ key terms.
+- Worked Examples: at least 4 fully solved problems inside :::example callouts. Show every step and state the final answer.
+- Real-World Applications: 4–6 concrete scenarios (industry, daily life, careers) as a Markdown table.
+- Visual Learning: two or more inline SVG diagrams (or Mermaid-compatible flowcharts written as SVG) — each with an italic caption. Subject-appropriate (see subject rules below).
+- Activities: 3–5 hands-on tasks learners can do at home or in class.
+- Practice Questions: 6 short-answer questions, each followed by a :::tip Answer callout with the worked answer.
+- Exam-Style Questions: 3 CAPS-style structured questions with mark allocations in brackets, followed by :::example model answers.
+- Common Mistakes: :::warning callouts covering at least 4 pitfalls with the correction.
+- Revision Summary: :::summary callout of 6–10 bullets covering the whole chapter.
+- Glossary: Markdown table of 10+ terms with precise definitions (may overlap with Definitions but must be more comprehensive).
+- Key Takeaways: :::takeaway callout with 4–6 memorable one-liners plus a short revision checklist (bulleted).
+
+═══════════════════════════════════════════
+${subjectAddendum(subject)}
+═══════════════════════════════════════════
+
+Interactive elements to weave through the chapter: :::tip quick knowledge checks, :::did-you-know facts, :::exam-tip strategy notes, memory aids/mnemonics.
 
 ═══════════════════════════════════════════
 TONE
 ═══════════════════════════════════════════
-Warm, encouraging, precise. Address the learner directly ("you"). South African English spelling. Avoid filler. Prefer concrete numbers, real place names, and locally relevant examples.
+Warm, encouraging, precise, age-appropriate. Address the learner directly ("you"). South African English spelling. Prefer concrete numbers, real place names, and locally relevant examples (rand, load-shedding, Table Mountain, taxis, matric, etc.). No repetition. No filler.
 
-Remember: any HTML tag other than <svg>…</svg> and its children (g, path, rect, circle, ellipse, line, polyline, polygon, text, tspan, defs, marker, linearGradient, stop) will be stripped by the renderer. Write clean Markdown.`;
+Return ONLY the Markdown chapter. No preamble, no closing remarks, no code fences around the whole output.`;
+}
+
+// ── Post-processing: strip disallowed HTML the model may leak ─────────────
+function sanitizeOutput(md: string): string {
+  return md
+    .replace(/<\s*a\b[^>]*>([\s\S]*?)<\s*\/\s*a\s*>/gi, "$1")
+    .replace(/<\s*a\b[^>]*\/?\s*>/gi, "")
+    .replace(/<\s*\/?\s*(span|p|section|article|header|footer|nav|aside|form|input|button|label|iframe|style|script)\b[^>]*>/gi, "")
+    .replace(/^(#{1,6}\s.+?)\s*\{#[\w-]+\}\s*$/gm, "$1")
+    .replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i, "$1") // unwrap whole-doc code fence
+    .trim();
+}
+
+function countWords(md: string): number {
+  // Strip code fences, SVG blocks, tables' pipe chars, callout markers.
+  const stripped = md
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
+    .replace(/[:|>#*_`\-]/g, " ");
+  return stripped.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function missingSections(md: string): string[] {
+  const headings = new Set(
+    md.split("\n")
+      .map((l) => /^##\s+(.+?)\s*$/.exec(l)?.[1]?.trim().toLowerCase())
+      .filter(Boolean) as string[],
+  );
+  return REQUIRED_SECTIONS.filter((s) => !headings.has(s.toLowerCase()));
+}
+
+async function callAI(apiKey: string, system: string, user: string): Promise<string> {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-pro",
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    if (res.status === 429) throw new Error("AI is busy — try again in a moment.");
+    if (res.status === 402) throw new Error("AI usage limit reached. Please add credits.");
+    throw new Error(`AI error: ${res.status} ${text.slice(0, 200)}`);
+  }
+  const json = await res.json();
+  const content: string | undefined = json.choices?.[0]?.message?.content?.trim();
+  if (!content) throw new Error("The AI returned no content.");
+  return content;
+}
 
 export const enhanceLesson = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -72,7 +182,6 @@ export const enhanceLesson = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("AI is not configured.");
     const { supabase, userId } = context;
 
-    // Admin/teacher only.
     const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "teacher");
     if (!allowed) throw new Error("Only teachers or admins can enhance lessons.");
@@ -88,52 +197,56 @@ export const enhanceLesson = createServerFn({ method: "POST" })
     const subject = (lesson as any).modules?.courses?.subjects?.name ?? "General";
     const course = (lesson as any).modules?.courses?.title ?? "";
     const module = (lesson as any).modules?.title ?? "";
+    const system = buildSystemPrompt(subject);
 
-    const userPrompt = `Rewrite this lesson into the full structured format.
+    const baseUserPrompt = `Write the complete textbook chapter for this lesson.
 
 Subject: ${subject}
 Course: ${course}
 Module: ${module}
 Lesson title: ${lesson.title}
 
-Existing content (use as source material, expand and improve — keep any image references):
+Source material (expand and improve; preserve any Markdown image references):
 """
-${(lesson.content ?? "").slice(0, 6000)}
-"""`;
+${(lesson.content ?? "").slice(0, 8000)}
+"""
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+Remember: 1,800+ words minimum, all 17 required sections with the exact headings, subject-specific diagrams as inline SVG, pure Markdown only.`;
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      if (res.status === 429) throw new Error("AI is busy — try again in a moment.");
-      if (res.status === 402) throw new Error("AI usage limit reached. Please add credits.");
-      throw new Error(`AI error: ${res.status} ${text.slice(0, 200)}`);
+    // Generate + validate + regenerate loop (max 3 attempts).
+    const MIN_WORDS = 1800;
+    let content = "";
+    let attempt = 0;
+    let lastIssues: string[] = [];
+
+    while (attempt < 3) {
+      attempt++;
+      const userPrompt =
+        attempt === 1
+          ? baseUserPrompt
+          : `${baseUserPrompt}
+
+Your previous draft was REJECTED for these reasons:
+${lastIssues.map((i) => `- ${i}`).join("\n")}
+
+Regenerate the FULL chapter fixing every issue. Do not shorten. Do not omit any of the 17 required section headings.`;
+
+      const raw = await callAI(apiKey, system, userPrompt);
+      content = sanitizeOutput(raw);
+
+      const issues: string[] = [];
+      const missing = missingSections(content);
+      if (missing.length) issues.push(`Missing required section headings: ${missing.join(", ")}`);
+      const words = countWords(content);
+      if (words < MIN_WORDS) issues.push(`Chapter is only ${words} words; minimum is ${MIN_WORDS}.`);
+      if (/\bTODO\b|\[insert |coming soon|placeholder/i.test(content))
+        issues.push("Placeholder text detected — remove and write full content.");
+      if (/<\s*(div|span|p|iframe|script|style)\b/i.test(content))
+        issues.push("Disallowed HTML tags detected — use pure Markdown.");
+
+      if (issues.length === 0) break;
+      lastIssues = issues;
     }
-    const json = await res.json();
-    let content: string | undefined = json.choices?.[0]?.message?.content?.trim();
-    if (!content) throw new Error("The AI returned no content.");
-
-    // Belt-and-braces: strip any disallowed raw HTML the model may have leaked.
-    // Preserve SVG diagrams and our own :::callout::: fenced blocks (they render as
-    // <div data-callout> only after client-side preprocessing).
-    content = content
-      // Drop <a> anchors used as heading IDs but keep any visible text.
-      .replace(/<\s*a\b[^>]*>([\s\S]*?)<\s*\/\s*a\s*>/gi, "$1")
-      .replace(/<\s*a\b[^>]*\/?\s*>/gi, "")
-      // Drop <span>/<p>/<div> wrappers (SVG-related tags are whitelisted below).
-      .replace(/<\s*\/?\s*(span|p|section|article|header|footer|nav|aside|form|input|button|label|iframe|style|script)\b[^>]*>/gi, "")
-      // Drop stray id/class attributes on headings if any survived.
-      .replace(/^(#{1,6}\s.+?)\s*\{#[\w-]+\}\s*$/gm, "$1");
 
     const { error: upErr } = await supabase
       .from("lessons")
@@ -141,7 +254,7 @@ ${(lesson.content ?? "").slice(0, 6000)}
       .eq("id", data.lessonId);
     if (upErr) throw upErr;
 
-    return { ok: true, length: content.length };
+    return { ok: true, length: content.length, words: countWords(content), attempts: attempt };
   });
 
 export const listAllLessonIds = createServerFn({ method: "GET" })
