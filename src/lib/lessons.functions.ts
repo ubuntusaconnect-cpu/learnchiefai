@@ -105,7 +105,7 @@ ${(lesson.content ?? "").slice(0, 6000)}
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: SYSTEM },
           { role: "user", content: userPrompt },
@@ -120,8 +120,20 @@ ${(lesson.content ?? "").slice(0, 6000)}
       throw new Error(`AI error: ${res.status} ${text.slice(0, 200)}`);
     }
     const json = await res.json();
-    const content = json.choices?.[0]?.message?.content?.trim();
+    let content: string | undefined = json.choices?.[0]?.message?.content?.trim();
     if (!content) throw new Error("The AI returned no content.");
+
+    // Belt-and-braces: strip any disallowed raw HTML the model may have leaked.
+    // Preserve SVG diagrams and our own :::callout::: fenced blocks (they render as
+    // <div data-callout> only after client-side preprocessing).
+    content = content
+      // Drop <a> anchors used as heading IDs but keep any visible text.
+      .replace(/<\s*a\b[^>]*>([\s\S]*?)<\s*\/\s*a\s*>/gi, "$1")
+      .replace(/<\s*a\b[^>]*\/?\s*>/gi, "")
+      // Drop <span>/<p>/<div> wrappers (SVG-related tags are whitelisted below).
+      .replace(/<\s*\/?\s*(span|p|section|article|header|footer|nav|aside|form|input|button|label|iframe|style|script)\b[^>]*>/gi, "")
+      // Drop stray id/class attributes on headings if any survived.
+      .replace(/^(#{1,6}\s.+?)\s*\{#[\w-]+\}\s*$/gm, "$1");
 
     const { error: upErr } = await supabase
       .from("lessons")
