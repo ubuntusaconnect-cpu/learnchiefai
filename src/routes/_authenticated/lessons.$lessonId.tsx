@@ -107,13 +107,7 @@ function LessonPage() {
   if (isLoading) return <AppShell><Card className="h-96 animate-pulse" /></AppShell>;
   if (!lesson) return <AppShell><p>Lesson not found.</p></AppShell>;
 
-  // Attach heading ids so the outline can scroll.
-  const contentWithIds = content.replace(/^(##\s+)(.+?)\s*$/gm, (_, hash, text, offset, full) => {
-    // count previous ## occurrences to compute id via extractHeadings order
-    const before = full.slice(0, offset).match(/^##\s+.+$/gm)?.length ?? 0;
-    const h = headings[before];
-    return h ? `${hash}<a id="${h.id}"></a>${text}` : `${hash}${text}`;
-  });
+  // Heading IDs are generated automatically by rehype-slug inside MarkdownView.
 
   return (
     <AppShell>
