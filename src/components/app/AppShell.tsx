@@ -16,6 +16,7 @@ function navFor(role: AppRole) {
   const base = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/courses", label: "Courses", icon: BookOpen },
+    { to: "/papers", label: "Question Papers", icon: FileText },
     { to: "/assistant", label: "AI Assistant", icon: Bot },
     { to: "/search", label: "Search", icon: Search },
     { to: "/bookmarks", label: "Bookmarks", icon: Bookmark },
