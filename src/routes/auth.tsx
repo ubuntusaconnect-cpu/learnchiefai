@@ -95,7 +95,8 @@ function SignInForm({ busy, setBusy }: { busy: boolean; setBusy: (b: boolean) =>
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Welcome back!");
-    navigate({ to: "/dashboard" });
+    const isAdmin = email.trim().toLowerCase() === "lembaartworks@gmail.com";
+    navigate({ to: isAdmin ? "/admin" : "/dashboard" });
   }
 
   return (

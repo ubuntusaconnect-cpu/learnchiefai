@@ -14,8 +14,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles, FileText, Upload, Pencil, X } from "lucide-react";
+import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles, FileText, Upload, Pencil, X, UploadCloud } from "lucide-react";
 import { CAPS_SUBJECTS, GRADES, TERMS, yearRange } from "@/lib/papers";
+import { BulkPaperImporter } from "@/components/app/BulkPaperImporter";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -42,12 +43,14 @@ function AdminPage() {
           <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" /> Users</TabsTrigger>
           <TabsTrigger value="subjects"><BookOpen className="mr-2 h-4 w-4" /> Subjects</TabsTrigger>
           <TabsTrigger value="papers"><FileText className="mr-2 h-4 w-4" /> Question Papers</TabsTrigger>
+          <TabsTrigger value="bulk"><UploadCloud className="mr-2 h-4 w-4" /> Bulk Import</TabsTrigger>
           <TabsTrigger value="content"><Sparkles className="mr-2 h-4 w-4" /> Content</TabsTrigger>
           <TabsTrigger value="announcements"><Megaphone className="mr-2 h-4 w-4" /> Announcements</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="mt-4"><UsersPanel /></TabsContent>
         <TabsContent value="subjects" className="mt-4"><SubjectsPanel /></TabsContent>
         <TabsContent value="papers" className="mt-4"><PapersPanel /></TabsContent>
+        <TabsContent value="bulk" className="mt-4"><BulkPaperImporter /></TabsContent>
         <TabsContent value="content" className="mt-4"><ContentPanel /></TabsContent>
         <TabsContent value="announcements" className="mt-4"><AnnouncementsPanel /></TabsContent>
       </Tabs>
