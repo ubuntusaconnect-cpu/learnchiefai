@@ -32,7 +32,7 @@ const newId = () => `r${++rowSeq}_${Date.now()}`;
 
 async function collectFiles(items: DataTransferItemList | null, files: FileList | null): Promise<File[]> {
   const out: File[] = [];
-  if (items && items.length && items[0].webkitGetAsEntry) {
+  if (items && items.length && typeof (items[0] as any).webkitGetAsEntry === "function") {
     const entries: any[] = [];
     for (let i = 0; i < items.length; i++) {
       const e = items[i].webkitGetAsEntry?.();
