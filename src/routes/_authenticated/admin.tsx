@@ -41,11 +41,13 @@ function AdminPage() {
         <TabsList>
           <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" /> Users</TabsTrigger>
           <TabsTrigger value="subjects"><BookOpen className="mr-2 h-4 w-4" /> Subjects</TabsTrigger>
+          <TabsTrigger value="papers"><FileText className="mr-2 h-4 w-4" /> Question Papers</TabsTrigger>
           <TabsTrigger value="content"><Sparkles className="mr-2 h-4 w-4" /> Content</TabsTrigger>
           <TabsTrigger value="announcements"><Megaphone className="mr-2 h-4 w-4" /> Announcements</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="mt-4"><UsersPanel /></TabsContent>
         <TabsContent value="subjects" className="mt-4"><SubjectsPanel /></TabsContent>
+        <TabsContent value="papers" className="mt-4"><PapersPanel /></TabsContent>
         <TabsContent value="content" className="mt-4"><ContentPanel /></TabsContent>
         <TabsContent value="announcements" className="mt-4"><AnnouncementsPanel /></TabsContent>
       </Tabs>
