@@ -14,8 +14,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles, FileText, Upload, Pencil, X } from "lucide-react";
+import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles, FileText, Upload, Pencil, X, UploadCloud } from "lucide-react";
 import { CAPS_SUBJECTS, GRADES, TERMS, yearRange } from "@/lib/papers";
+import { BulkPaperImporter } from "@/components/app/BulkPaperImporter";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
