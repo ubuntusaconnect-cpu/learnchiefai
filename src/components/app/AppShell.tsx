@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, BookOpen, Bot, Search, GraduationCap, Settings,
-  Shield, Bell, LogOut, Menu, X, Bookmark,
+  Shield, Bell, LogOut, Menu, X, Bookmark, FileText,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
