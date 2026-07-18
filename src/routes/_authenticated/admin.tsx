@@ -13,7 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles, FileText, Upload, Pencil, X } from "lucide-react";
+import { CAPS_SUBJECTS, GRADES, TERMS, yearRange } from "@/lib/papers";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
