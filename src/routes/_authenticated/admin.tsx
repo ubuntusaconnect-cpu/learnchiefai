@@ -13,7 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles, FileText, Upload, Pencil, X } from "lucide-react";
+import { CAPS_SUBJECTS, GRADES, TERMS, yearRange } from "@/lib/papers";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -39,11 +41,13 @@ function AdminPage() {
         <TabsList>
           <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" /> Users</TabsTrigger>
           <TabsTrigger value="subjects"><BookOpen className="mr-2 h-4 w-4" /> Subjects</TabsTrigger>
+          <TabsTrigger value="papers"><FileText className="mr-2 h-4 w-4" /> Question Papers</TabsTrigger>
           <TabsTrigger value="content"><Sparkles className="mr-2 h-4 w-4" /> Content</TabsTrigger>
           <TabsTrigger value="announcements"><Megaphone className="mr-2 h-4 w-4" /> Announcements</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="mt-4"><UsersPanel /></TabsContent>
         <TabsContent value="subjects" className="mt-4"><SubjectsPanel /></TabsContent>
+        <TabsContent value="papers" className="mt-4"><PapersPanel /></TabsContent>
         <TabsContent value="content" className="mt-4"><ContentPanel /></TabsContent>
         <TabsContent value="announcements" className="mt-4"><AnnouncementsPanel /></TabsContent>
       </Tabs>
@@ -230,6 +234,292 @@ function AnnouncementsPanel() {
           <Label>Title</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
           <Label>Body</Label><Textarea rows={5} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} />
           <Button className="w-full" onClick={() => add.mutate()} disabled={!f.title || !f.body}>Post</Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+type PaperRow = {
+  id: string;
+  title: string;
+  grade: number;
+  subject: string;
+  term: number;
+  year: number;
+  description: string | null;
+  paper_url: string | null;
+  paper_path: string | null;
+  memo_url: string | null;
+  memo_path: string | null;
+};
+
+type PaperForm = {
+  id?: string;
+  title: string;
+  grade: number;
+  subject: string;
+  term: number;
+  year: number;
+  description: string;
+  paper_url: string;
+  memo_url: string;
+  paper_path: string | null;
+  memo_path: string | null;
+  paperFile: File | null;
+  memoFile: File | null;
+};
+
+function emptyForm(): PaperForm {
+  return {
+    title: "",
+    grade: 12,
+    subject: CAPS_SUBJECTS[0],
+    term: 1,
+    year: new Date().getFullYear(),
+    description: "",
+    paper_url: "",
+    memo_url: "",
+    paper_path: null,
+    memo_path: null,
+    paperFile: null,
+    memoFile: null,
+  };
+}
+
+function PapersPanel() {
+  const { data: user } = useSession();
+  const qc = useQueryClient();
+  const [f, setF] = useState<PaperForm>(emptyForm());
+  const [busy, setBusy] = useState(false);
+  const [filterGrade, setFilterGrade] = useState<string>("all");
+  const [filterSubject, setFilterSubject] = useState<string>("all");
+
+  const { data: papers = [] } = useQuery({
+    queryKey: ["admin_question_papers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("question_papers")
+        .select("*")
+        .order("year", { ascending: false })
+        .order("grade", { ascending: false });
+      if (error) throw error;
+      return data as PaperRow[];
+    },
+  });
+
+  async function uploadTo(bucketPath: string, file: File) {
+    const { error } = await supabase.storage.from("question-papers").upload(bucketPath, file, {
+      upsert: true,
+      contentType: file.type || "application/pdf",
+    });
+    if (error) throw error;
+    return bucketPath;
+  }
+
+  async function save() {
+    if (!f.title || !f.subject) return toast.error("Title and subject are required");
+    setBusy(true);
+    try {
+      let paper_path = f.paper_path;
+      let memo_path = f.memo_path;
+      const slug = `${f.grade}/${f.year}/T${f.term}/${Date.now()}`;
+      if (f.paperFile) {
+        paper_path = await uploadTo(`${slug}-paper-${f.paperFile.name}`, f.paperFile);
+      }
+      if (f.memoFile) {
+        memo_path = await uploadTo(`${slug}-memo-${f.memoFile.name}`, f.memoFile);
+      }
+      const payload = {
+        title: f.title,
+        grade: f.grade,
+        subject: f.subject,
+        term: f.term,
+        year: f.year,
+        description: f.description || null,
+        paper_url: f.paper_url || null,
+        memo_url: f.memo_url || null,
+        paper_path,
+        memo_path,
+        uploaded_by: user?.id ?? null,
+      };
+      if (f.id) {
+        const { error } = await supabase.from("question_papers").update(payload).eq("id", f.id);
+        if (error) throw error;
+        toast.success("Paper updated");
+      } else {
+        const { error } = await supabase.from("question_papers").insert(payload);
+        if (error) throw error;
+        toast.success("Paper added");
+      }
+      setF(emptyForm());
+      qc.invalidateQueries({ queryKey: ["admin_question_papers"] });
+      qc.invalidateQueries({ queryKey: ["question_papers"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(p: PaperRow) {
+    if (!confirm(`Delete "${p.title}"?`)) return;
+    const paths = [p.paper_path, p.memo_path].filter((x): x is string => !!x);
+    if (paths.length) await supabase.storage.from("question-papers").remove(paths);
+    const { error } = await supabase.from("question_papers").delete().eq("id", p.id);
+    if (error) return toast.error(error.message);
+    toast.success("Deleted");
+    qc.invalidateQueries({ queryKey: ["admin_question_papers"] });
+    qc.invalidateQueries({ queryKey: ["question_papers"] });
+  }
+
+  function edit(p: PaperRow) {
+    setF({
+      id: p.id,
+      title: p.title,
+      grade: p.grade,
+      subject: p.subject,
+      term: p.term,
+      year: p.year,
+      description: p.description ?? "",
+      paper_url: p.paper_url ?? "",
+      memo_url: p.memo_url ?? "",
+      paper_path: p.paper_path,
+      memo_path: p.memo_path,
+      paperFile: null,
+      memoFile: null,
+    });
+  }
+
+  const filtered = papers.filter((p) => {
+    if (filterGrade !== "all" && String(p.grade) !== filterGrade) return false;
+    if (filterSubject !== "all" && p.subject !== filterSubject) return false;
+    return true;
+  });
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+      <Card className="p-4">
+        <div className="mb-3 flex flex-wrap gap-2">
+          <Select value={filterGrade} onValueChange={setFilterGrade}>
+            <SelectTrigger className="w-32"><SelectValue placeholder="Grade" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All grades</SelectItem>
+              {GRADES.map((g) => <SelectItem key={g} value={String(g)}>Grade {g}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filterSubject} onValueChange={setFilterSubject}>
+            <SelectTrigger className="w-56"><SelectValue placeholder="Subject" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All subjects</SelectItem>
+              {CAPS_SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b bg-muted/50 text-left">
+              <tr>
+                <th className="p-2">Title</th>
+                <th className="p-2">Grade</th>
+                <th className="p-2">Subject</th>
+                <th className="p-2">Term</th>
+                <th className="p-2">Year</th>
+                <th className="p-2">Memo</th>
+                <th className="p-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((p) => (
+                <tr key={p.id} className="border-b">
+                  <td className="p-2 font-medium">{p.title}</td>
+                  <td className="p-2">{p.grade}</td>
+                  <td className="p-2 text-muted-foreground">{p.subject}</td>
+                  <td className="p-2">T{p.term}</td>
+                  <td className="p-2">{p.year}</td>
+                  <td className="p-2">{p.memo_url || p.memo_path ? "Yes" : "—"}</td>
+                  <td className="p-2 text-right">
+                    <Button size="sm" variant="ghost" onClick={() => edit(p)}><Pencil className="h-3 w-3" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => remove(p)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No papers yet.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold">{f.id ? "Edit paper" : "New paper"}</h3>
+          {f.id && (
+            <Button size="sm" variant="ghost" onClick={() => setF(emptyForm())}>
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+        <div className="space-y-2">
+          <div>
+            <Label>Title</Label>
+            <Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g. Mathematics P1 November 2024" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Grade</Label>
+              <Select value={String(f.grade)} onValueChange={(v) => setF({ ...f, grade: Number(v) })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{GRADES.map((g) => <SelectItem key={g} value={String(g)}>Grade {g}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Term</Label>
+              <Select value={String(f.term)} onValueChange={(v) => setF({ ...f, term: Number(v) })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{TERMS.map((t) => <SelectItem key={t} value={String(t)}>Term {t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label>Subject</Label>
+            <Select value={f.subject} onValueChange={(v) => setF({ ...f, subject: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{CAPS_SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Year</Label>
+            <Select value={String(f.year)} onValueChange={(v) => setF({ ...f, year: Number(v) })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{yearRange().map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea rows={2} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
+          </div>
+
+          <div className="rounded-lg border border-dashed p-3">
+            <Label className="text-xs uppercase text-muted-foreground">Paper PDF</Label>
+            <Input type="file" accept="application/pdf" onChange={(e) => setF({ ...f, paperFile: e.target.files?.[0] ?? null })} />
+            <div className="my-2 text-center text-xs text-muted-foreground">or paste an external link</div>
+            <Input placeholder="https://…/paper.pdf" value={f.paper_url} onChange={(e) => setF({ ...f, paper_url: e.target.value })} />
+            {f.paper_path && <div className="mt-1 text-xs text-muted-foreground">Uploaded: {f.paper_path.split("/").pop()}</div>}
+          </div>
+
+          <div className="rounded-lg border border-dashed p-3">
+            <Label className="text-xs uppercase text-muted-foreground">Memo PDF (optional)</Label>
+            <Input type="file" accept="application/pdf" onChange={(e) => setF({ ...f, memoFile: e.target.files?.[0] ?? null })} />
+            <div className="my-2 text-center text-xs text-muted-foreground">or paste an external link</div>
+            <Input placeholder="https://…/memo.pdf" value={f.memo_url} onChange={(e) => setF({ ...f, memo_url: e.target.value })} />
+            {f.memo_path && <div className="mt-1 text-xs text-muted-foreground">Uploaded: {f.memo_path.split("/").pop()}</div>}
+          </div>
+
+          <Button className="w-full" onClick={save} disabled={busy}>
+            <Upload className="mr-2 h-4 w-4" /> {busy ? "Saving…" : f.id ? "Save changes" : "Add paper"}
+          </Button>
         </div>
       </Card>
     </div>

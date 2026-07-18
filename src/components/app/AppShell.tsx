@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, BookOpen, Bot, Search, GraduationCap, Settings,
-  Shield, Bell, LogOut, Menu, X, Bookmark,
+  Shield, Bell, LogOut, Menu, X, Bookmark, FileText,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -16,6 +16,7 @@ function navFor(role: AppRole) {
   const base = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/courses", label: "Courses", icon: BookOpen },
+    { to: "/papers", label: "Question Papers", icon: FileText },
     { to: "/assistant", label: "AI Assistant", icon: Bot },
     { to: "/search", label: "Search", icon: Search },
     { to: "/bookmarks", label: "Bookmarks", icon: Bookmark },
