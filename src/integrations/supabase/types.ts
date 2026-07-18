@@ -349,6 +349,57 @@ export type Database = {
         }
         Relationships: []
       }
+      question_papers: {
+        Row: {
+          created_at: string
+          description: string | null
+          grade: number
+          id: string
+          memo_path: string | null
+          memo_url: string | null
+          paper_path: string | null
+          paper_url: string | null
+          subject: string
+          term: number
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          grade: number
+          id?: string
+          memo_path?: string | null
+          memo_url?: string | null
+          paper_path?: string | null
+          paper_url?: string | null
+          subject: string
+          term: number
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          grade?: number
+          id?: string
+          memo_path?: string | null
+          memo_url?: string | null
+          paper_path?: string | null
+          paper_url?: string | null
+          subject?: string
+          term?: number
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       quiz_attempts: {
         Row: {
           answers: Json
