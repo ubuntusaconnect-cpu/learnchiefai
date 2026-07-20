@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_cache: {
+        Row: {
+          created_at: string
+          hits: number
+          last_hit_at: string | null
+          model: string | null
+          prompt_hash: string
+          provider: string | null
+          response: string
+          tokens_in: number | null
+          tokens_out: number | null
+        }
+        Insert: {
+          created_at?: string
+          hits?: number
+          last_hit_at?: string | null
+          model?: string | null
+          prompt_hash: string
+          provider?: string | null
+          response: string
+          tokens_in?: number | null
+          tokens_out?: number | null
+        }
+        Update: {
+          created_at?: string
+          hits?: number
+          last_hit_at?: string | null
+          model?: string | null
+          prompt_hash?: string
+          provider?: string | null
+          response?: string
+          tokens_in?: number | null
+          tokens_out?: number | null
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           created_at: string
@@ -69,6 +105,114 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_provider_configs: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          has_key: boolean
+          id: string
+          last_test_at: string | null
+          last_test_error: string | null
+          last_test_latency_ms: number | null
+          last_test_ok: boolean | null
+          model: string | null
+          priority: number
+          provider_key: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          has_key?: boolean
+          id?: string
+          last_test_at?: string | null
+          last_test_error?: string | null
+          last_test_latency_ms?: number | null
+          last_test_ok?: boolean | null
+          model?: string | null
+          priority?: number
+          provider_key: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          has_key?: boolean
+          id?: string
+          last_test_at?: string | null
+          last_test_error?: string | null
+          last_test_latency_ms?: number | null
+          last_test_ok?: boolean | null
+          model?: string | null
+          priority?: number
+          provider_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_provider_secrets: {
+        Row: {
+          api_key: string
+          provider_key: string
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          provider_key: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          provider_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_request_logs: {
+        Row: {
+          cached: boolean
+          created_at: string
+          duration_ms: number | null
+          error: string | null
+          id: string
+          model: string | null
+          operation: string | null
+          provider: string
+          status: string
+          tokens_in: number | null
+          tokens_out: number | null
+          user_id: string | null
+        }
+        Insert: {
+          cached?: boolean
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          model?: string | null
+          operation?: string | null
+          provider: string
+          status: string
+          tokens_in?: number | null
+          tokens_out?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          cached?: boolean
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          model?: string | null
+          operation?: string | null
+          provider?: string
+          status?: string
+          tokens_in?: number | null
+          tokens_out?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       announcements: {
         Row: {
