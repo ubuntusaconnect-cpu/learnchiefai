@@ -20,7 +20,7 @@ import {
   ArrowUp, ArrowDown, Zap, Activity, BarChart3, ScrollText, Save, TestTube2, KeyRound,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/admin/ai-providers")({
+export const Route = createFileRoute("/_authenticated/ai-providers")({
   component: AiProvidersPage,
 });
 

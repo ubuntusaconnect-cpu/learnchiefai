@@ -20,12 +20,12 @@ import { Route as AuthenticatedPapersRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authenticated/bookmarks'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedAiProvidersRouteImport } from './routes/_authenticated/ai-providers'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedTeacherCourseIdRouteImport } from './routes/_authenticated/teacher.$courseId'
 import { Route as AuthenticatedLessonsLessonIdRouteImport } from './routes/_authenticated/lessons.$lessonId'
 import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
-import { Route as AuthenticatedAdminAiProvidersRouteImport } from './routes/_authenticated/admin.ai-providers'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -81,6 +81,12 @@ const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAiProvidersRoute =
+  AuthenticatedAiProvidersRouteImport.update({
+    id: '/ai-providers',
+    path: '/ai-providers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -110,18 +116,13 @@ const AuthenticatedCoursesCourseIdRoute =
     path: '/courses/$courseId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdminAiProvidersRoute =
-  AuthenticatedAdminAiProvidersRouteImport.update({
-    id: '/ai-providers',
-    path: '/ai-providers',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/admin': typeof AuthenticatedAdminRoute
+  '/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -129,7 +130,6 @@ export interface FileRoutesByFullPath {
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/teacher': typeof AuthenticatedTeacherRouteWithChildren
-  '/admin/ai-providers': typeof AuthenticatedAdminAiProvidersRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
@@ -139,7 +139,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/admin': typeof AuthenticatedAdminRoute
+  '/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -147,7 +148,6 @@ export interface FileRoutesByTo {
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/teacher': typeof AuthenticatedTeacherRouteWithChildren
-  '/admin/ai-providers': typeof AuthenticatedAdminAiProvidersRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
@@ -159,7 +159,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -167,7 +168,6 @@ export interface FileRoutesById {
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/teacher': typeof AuthenticatedTeacherRouteWithChildren
-  '/_authenticated/admin/ai-providers': typeof AuthenticatedAdminAiProvidersRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/_authenticated/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
@@ -180,6 +180,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/admin'
+    | '/ai-providers'
     | '/assistant'
     | '/bookmarks'
     | '/dashboard'
@@ -187,7 +188,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/teacher'
-    | '/admin/ai-providers'
     | '/courses/$courseId'
     | '/lessons/$lessonId'
     | '/teacher/$courseId'
@@ -198,6 +198,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/admin'
+    | '/ai-providers'
     | '/assistant'
     | '/bookmarks'
     | '/dashboard'
@@ -205,7 +206,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/teacher'
-    | '/admin/ai-providers'
     | '/courses/$courseId'
     | '/lessons/$lessonId'
     | '/teacher/$courseId'
@@ -217,6 +217,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/ai-providers'
     | '/_authenticated/assistant'
     | '/_authenticated/bookmarks'
     | '/_authenticated/dashboard'
@@ -224,7 +225,6 @@ export interface FileRouteTypes {
     | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/teacher'
-    | '/_authenticated/admin/ai-providers'
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/lessons/$lessonId'
     | '/_authenticated/teacher/$courseId'
@@ -317,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssistantRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ai-providers': {
+      id: '/_authenticated/ai-providers'
+      path: '/ai-providers'
+      fullPath: '/ai-providers'
+      preLoaderRoute: typeof AuthenticatedAiProvidersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -352,26 +359,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCoursesCourseIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin/ai-providers': {
-      id: '/_authenticated/admin/ai-providers'
-      path: '/ai-providers'
-      fullPath: '/admin/ai-providers'
-      preLoaderRoute: typeof AuthenticatedAdminAiProvidersRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
   }
 }
-
-interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminAiProvidersRoute: typeof AuthenticatedAdminAiProvidersRoute
-}
-
-const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminAiProvidersRoute: AuthenticatedAdminAiProvidersRoute,
-}
-
-const AuthenticatedAdminRouteWithChildren =
-  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedTeacherRouteChildren {
   AuthenticatedTeacherCourseIdRoute: typeof AuthenticatedTeacherCourseIdRoute
@@ -385,7 +374,8 @@ const AuthenticatedTeacherRouteWithChildren =
   AuthenticatedTeacherRoute._addFileChildren(AuthenticatedTeacherRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAiProvidersRoute: typeof AuthenticatedAiProvidersRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBookmarksRoute: typeof AuthenticatedBookmarksRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -399,7 +389,8 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAiProvidersRoute: AuthenticatedAiProvidersRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBookmarksRoute: AuthenticatedBookmarksRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,

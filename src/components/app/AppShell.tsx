@@ -25,7 +25,7 @@ function navFor(role: AppRole) {
   if (role === "admin") {
     base.push({ to: "/teacher", label: "Teach", icon: GraduationCap });
     base.push({ to: "/admin", label: "Admin", icon: Shield });
-    base.push({ to: "/admin/ai-providers", label: "AI Providers", icon: Zap });
+    base.push({ to: "/ai-providers", label: "AI Providers", icon: Zap });
   }
   base.push({ to: "/settings", label: "Settings", icon: Settings });
   return base;
