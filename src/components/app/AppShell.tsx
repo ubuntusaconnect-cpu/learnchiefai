@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, BookOpen, Bot, Search, GraduationCap, Settings,
-  Shield, Bell, LogOut, Menu, X, Bookmark, FileText,
+  Shield, Bell, LogOut, Menu, X, Bookmark, FileText, Zap,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -25,6 +25,7 @@ function navFor(role: AppRole) {
   if (role === "admin") {
     base.push({ to: "/teacher", label: "Teach", icon: GraduationCap });
     base.push({ to: "/admin", label: "Admin", icon: Shield });
+    base.push({ to: "/admin/ai-providers", label: "AI Providers", icon: Zap });
   }
   base.push({ to: "/settings", label: "Settings", icon: Settings });
   return base;
