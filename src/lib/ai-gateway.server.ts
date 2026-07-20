@@ -257,15 +257,15 @@ function hashPrompt(messages: ChatMessage[], operation?: string): string {
 async function cacheGet(hash: string): Promise<{ response: string; provider: string; model: string; tokensIn?: number; tokensOut?: number } | null> {
   const { data } = await supabaseAdmin
     .from("ai_cache")
-    .select("response, provider, model, tokens_in, tokens_out")
+    .select("response, provider, model, tokens_in, tokens_out, hits")
     .eq("prompt_hash", hash)
     .maybeSingle();
   if (!data) return null;
-  await supabaseAdmin.from("ai_cache")
-    .update({ hits: (data as any).hits != null ? undefined : undefined, last_hit_at: new Date().toISOString() })
-    .eq("prompt_hash", hash);
-  // Atomically bump hits
-  await supabaseAdmin.rpc("noop_bump_ai_cache_hit" as any, { _hash: hash }).then(() => {}, () => {});
+  // Best-effort hit counter bump; ignore failures.
+  supabaseAdmin.from("ai_cache")
+    .update({ hits: ((data as any).hits ?? 0) + 1, last_hit_at: new Date().toISOString() })
+    .eq("prompt_hash", hash)
+    .then(() => {}, () => {});
   return {
     response: data.response,
     provider: data.provider ?? "cache",
