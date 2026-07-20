@@ -150,26 +150,13 @@ function missingSections(md: string): string[] {
   return REQUIRED_SECTIONS.filter((s) => !headings.has(s.toLowerCase()));
 }
 
-async function callAI(apiKey: string, system: string, user: string): Promise<string> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    if (res.status === 429) throw new Error("AI is busy — try again in a moment.");
-    if (res.status === 402) throw new Error("AI usage limit reached. Please add credits.");
-    throw new Error(`AI error: ${res.status} ${text.slice(0, 200)}`);
-  }
-  const json = await res.json();
-  const content: string | undefined = json.choices?.[0]?.message?.content?.trim();
+async function callAI(system: string, user: string, userId: string): Promise<string> {
+  const { aiChat } = await import("./ai-gateway.server");
+  const result = await aiChat(
+    [ { role: "system", content: system }, { role: "user", content: user } ],
+    { operation: "lesson-enhance", cache: true, userId, maxTokens: 8192 },
+  );
+  const content = result.content.trim();
   if (!content) throw new Error("The AI returned no content.");
   return content;
 }
