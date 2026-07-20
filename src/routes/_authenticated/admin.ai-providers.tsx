@@ -83,12 +83,13 @@ function ProvidersPanel() {
 
   const move = useMutation({
     mutationFn: async (params: { key: string; dir: -1 | 1 }) => {
-      const order = providers.map((p) => p.providerKey);
-      const idx = order.indexOf(params.key);
+      type PK = "lovable" | "gemini" | "groq" | "openrouter" | "openai" | "anthropic" | "mistral";
+      const order = providers.map((p) => p.providerKey as PK);
+      const idx = order.indexOf(params.key as PK);
       const next = idx + params.dir;
       if (idx < 0 || next < 0 || next >= order.length) return;
       [order[idx], order[next]] = [order[next], order[idx]];
-      await reorderFn({ data: { order: order as ("lovable" | "gemini" | "groq" | "openrouter" | "openai" | "anthropic" | "mistral")[] } });
+      await reorderFn({ data: { order } });
     },
     onSuccess: invalidate,
     onError: (e: any) => toast.error(e.message ?? "Failed to reorder"),
