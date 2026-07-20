@@ -97,7 +97,12 @@ export const upsertAiProvider = createServerFn({ method: "POST" })
               openai: "OPENAI_API_KEY", anthropic: "CLAUDE_API_KEY", mistral: "MISTRAL_API_KEY" } as any)[data.providerKey]
           ];
 
-    const patch: Record<string, unknown> = { has_key: hasKey };
+    const patch: {
+      has_key: boolean;
+      enabled?: boolean;
+      priority?: number;
+      model?: string | null;
+    } = { has_key: hasKey };
     if (data.enabled !== undefined) patch.enabled = data.enabled;
     if (data.priority !== undefined) patch.priority = data.priority;
     if (data.model !== undefined) patch.model = data.model;
