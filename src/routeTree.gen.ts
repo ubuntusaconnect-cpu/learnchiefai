@@ -25,6 +25,7 @@ import { Route as AuthenticatedAiProvidersRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminVideosRouteImport } from './routes/_authenticated/admin-videos'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
+import { Route as AuthenticatedWatchContentIdRouteImport } from './routes/_authenticated/watch.$contentId'
 import { Route as AuthenticatedTeacherCourseIdRouteImport } from './routes/_authenticated/teacher.$courseId'
 import { Route as AuthenticatedLessonsLessonIdRouteImport } from './routes/_authenticated/lessons.$lessonId'
 import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
@@ -112,6 +113,12 @@ const AuthenticatedCoursesIndexRoute =
     path: '/courses/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedWatchContentIdRoute =
+  AuthenticatedWatchContentIdRouteImport.update({
+    id: '/watch/$contentId',
+    path: '/watch/$contentId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTeacherCourseIdRoute =
   AuthenticatedTeacherCourseIdRouteImport.update({
     id: '/$courseId',
@@ -149,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
+  '/watch/$contentId': typeof AuthenticatedWatchContentIdRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -169,6 +177,7 @@ export interface FileRoutesByTo {
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
+  '/watch/$contentId': typeof AuthenticatedWatchContentIdRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRoutesById {
@@ -191,6 +200,7 @@ export interface FileRoutesById {
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/_authenticated/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
+  '/_authenticated/watch/$contentId': typeof AuthenticatedWatchContentIdRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRouteTypes {
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/courses/$courseId'
     | '/lessons/$lessonId'
     | '/teacher/$courseId'
+    | '/watch/$contentId'
     | '/courses/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/courses/$courseId'
     | '/lessons/$lessonId'
     | '/teacher/$courseId'
+    | '/watch/$contentId'
     | '/courses'
   id:
     | '__root__'
@@ -254,6 +266,7 @@ export interface FileRouteTypes {
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/lessons/$lessonId'
     | '/_authenticated/teacher/$courseId'
+    | '/_authenticated/watch/$contentId'
     | '/_authenticated/courses/'
   fileRoutesById: FileRoutesById
 }
@@ -378,6 +391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCoursesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/watch/$contentId': {
+      id: '/_authenticated/watch/$contentId'
+      path: '/watch/$contentId'
+      fullPath: '/watch/$contentId'
+      preLoaderRoute: typeof AuthenticatedWatchContentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/teacher/$courseId': {
       id: '/_authenticated/teacher/$courseId'
       path: '/$courseId'
@@ -427,6 +447,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedVisualLearningRoute: typeof AuthenticatedVisualLearningRoute
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedLessonsLessonIdRoute: typeof AuthenticatedLessonsLessonIdRoute
+  AuthenticatedWatchContentIdRoute: typeof AuthenticatedWatchContentIdRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
 }
 
@@ -444,6 +465,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedVisualLearningRoute: AuthenticatedVisualLearningRoute,
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedLessonsLessonIdRoute: AuthenticatedLessonsLessonIdRoute,
+  AuthenticatedWatchContentIdRoute: AuthenticatedWatchContentIdRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
 }
 
@@ -459,13 +481,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
