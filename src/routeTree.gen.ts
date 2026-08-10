@@ -18,6 +18,7 @@ import { Route as AuthenticatedTeacherRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedPapersRouteImport } from './routes/_authenticated/papers'
+import { Route as AuthenticatedOfflineVideosRouteImport } from './routes/_authenticated/offline-videos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authenticated/bookmarks'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
@@ -75,6 +76,12 @@ const AuthenticatedPapersRoute = AuthenticatedPapersRouteImport.update({
   path: '/papers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOfflineVideosRoute =
+  AuthenticatedOfflineVideosRouteImport.update({
+    id: '/offline-videos',
+    path: '/offline-videos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -148,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/offline-videos': typeof AuthenticatedOfflineVideosRoute
   '/papers': typeof AuthenticatedPapersRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -169,6 +177,7 @@ export interface FileRoutesByTo {
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/offline-videos': typeof AuthenticatedOfflineVideosRoute
   '/papers': typeof AuthenticatedPapersRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -192,6 +201,7 @@ export interface FileRoutesById {
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/offline-videos': typeof AuthenticatedOfflineVideosRoute
   '/_authenticated/papers': typeof AuthenticatedPapersRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/bookmarks'
     | '/dashboard'
+    | '/offline-videos'
     | '/papers'
     | '/search'
     | '/settings'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/bookmarks'
     | '/dashboard'
+    | '/offline-videos'
     | '/papers'
     | '/search'
     | '/settings'
@@ -258,6 +270,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assistant'
     | '/_authenticated/bookmarks'
     | '/_authenticated/dashboard'
+    | '/_authenticated/offline-videos'
     | '/_authenticated/papers'
     | '/_authenticated/search'
     | '/_authenticated/settings'
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       path: '/papers'
       fullPath: '/papers'
       preLoaderRoute: typeof AuthenticatedPapersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/offline-videos': {
+      id: '/_authenticated/offline-videos'
+      path: '/offline-videos'
+      fullPath: '/offline-videos'
+      preLoaderRoute: typeof AuthenticatedOfflineVideosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -440,6 +460,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBookmarksRoute: typeof AuthenticatedBookmarksRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedOfflineVideosRoute: typeof AuthenticatedOfflineVideosRoute
   AuthenticatedPapersRoute: typeof AuthenticatedPapersRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -458,6 +479,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBookmarksRoute: AuthenticatedBookmarksRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedOfflineVideosRoute: AuthenticatedOfflineVideosRoute,
   AuthenticatedPapersRoute: AuthenticatedPapersRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
