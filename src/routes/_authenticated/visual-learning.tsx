@@ -37,7 +37,7 @@ function VisualLearningPage() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("search_learning_content", {
         _q: q.trim(),
-        _grade: grade,
+        _grade: grade ?? undefined,
         _content_type: "video",
       });
       if (error) throw error;
