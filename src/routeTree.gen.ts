@@ -13,16 +13,20 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedVisualLearningRouteImport } from './routes/_authenticated/visual-learning'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/_authenticated/teacher'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedPapersRouteImport } from './routes/_authenticated/papers'
+import { Route as AuthenticatedOfflineVideosRouteImport } from './routes/_authenticated/offline-videos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authenticated/bookmarks'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedAiProvidersRouteImport } from './routes/_authenticated/ai-providers'
+import { Route as AuthenticatedAdminVideosRouteImport } from './routes/_authenticated/admin-videos'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
+import { Route as AuthenticatedWatchContentIdRouteImport } from './routes/_authenticated/watch.$contentId'
 import { Route as AuthenticatedTeacherCourseIdRouteImport } from './routes/_authenticated/teacher.$courseId'
 import { Route as AuthenticatedLessonsLessonIdRouteImport } from './routes/_authenticated/lessons.$lessonId'
 import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
@@ -46,6 +50,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedVisualLearningRoute =
+  AuthenticatedVisualLearningRouteImport.update({
+    id: '/visual-learning',
+    path: '/visual-learning',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
   id: '/teacher',
   path: '/teacher',
@@ -66,6 +76,12 @@ const AuthenticatedPapersRoute = AuthenticatedPapersRouteImport.update({
   path: '/papers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOfflineVideosRoute =
+  AuthenticatedOfflineVideosRouteImport.update({
+    id: '/offline-videos',
+    path: '/offline-videos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -87,6 +103,12 @@ const AuthenticatedAiProvidersRoute =
     path: '/ai-providers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminVideosRoute =
+  AuthenticatedAdminVideosRouteImport.update({
+    id: '/admin-videos',
+    path: '/admin-videos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -96,6 +118,12 @@ const AuthenticatedCoursesIndexRoute =
   AuthenticatedCoursesIndexRouteImport.update({
     id: '/courses/',
     path: '/courses/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedWatchContentIdRoute =
+  AuthenticatedWatchContentIdRouteImport.update({
+    id: '/watch/$contentId',
+    path: '/watch/$contentId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedTeacherCourseIdRoute =
@@ -122,17 +150,21 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-videos': typeof AuthenticatedAdminVideosRoute
   '/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/offline-videos': typeof AuthenticatedOfflineVideosRoute
   '/papers': typeof AuthenticatedPapersRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/teacher': typeof AuthenticatedTeacherRouteWithChildren
+  '/visual-learning': typeof AuthenticatedVisualLearningRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
+  '/watch/$contentId': typeof AuthenticatedWatchContentIdRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -140,17 +172,21 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-videos': typeof AuthenticatedAdminVideosRoute
   '/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/offline-videos': typeof AuthenticatedOfflineVideosRoute
   '/papers': typeof AuthenticatedPapersRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/teacher': typeof AuthenticatedTeacherRouteWithChildren
+  '/visual-learning': typeof AuthenticatedVisualLearningRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
+  '/watch/$contentId': typeof AuthenticatedWatchContentIdRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRoutesById {
@@ -160,17 +196,21 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin-videos': typeof AuthenticatedAdminVideosRoute
   '/_authenticated/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/offline-videos': typeof AuthenticatedOfflineVideosRoute
   '/_authenticated/papers': typeof AuthenticatedPapersRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/teacher': typeof AuthenticatedTeacherRouteWithChildren
+  '/_authenticated/visual-learning': typeof AuthenticatedVisualLearningRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/_authenticated/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
+  '/_authenticated/watch/$contentId': typeof AuthenticatedWatchContentIdRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRouteTypes {
@@ -180,17 +220,21 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/admin'
+    | '/admin-videos'
     | '/ai-providers'
     | '/assistant'
     | '/bookmarks'
     | '/dashboard'
+    | '/offline-videos'
     | '/papers'
     | '/search'
     | '/settings'
     | '/teacher'
+    | '/visual-learning'
     | '/courses/$courseId'
     | '/lessons/$lessonId'
     | '/teacher/$courseId'
+    | '/watch/$contentId'
     | '/courses/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -198,17 +242,21 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/admin'
+    | '/admin-videos'
     | '/ai-providers'
     | '/assistant'
     | '/bookmarks'
     | '/dashboard'
+    | '/offline-videos'
     | '/papers'
     | '/search'
     | '/settings'
     | '/teacher'
+    | '/visual-learning'
     | '/courses/$courseId'
     | '/lessons/$lessonId'
     | '/teacher/$courseId'
+    | '/watch/$contentId'
     | '/courses'
   id:
     | '__root__'
@@ -217,17 +265,21 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/admin-videos'
     | '/_authenticated/ai-providers'
     | '/_authenticated/assistant'
     | '/_authenticated/bookmarks'
     | '/_authenticated/dashboard'
+    | '/_authenticated/offline-videos'
     | '/_authenticated/papers'
     | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/teacher'
+    | '/_authenticated/visual-learning'
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/lessons/$lessonId'
     | '/_authenticated/teacher/$courseId'
+    | '/_authenticated/watch/$contentId'
     | '/_authenticated/courses/'
   fileRoutesById: FileRoutesById
 }
@@ -268,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/visual-learning': {
+      id: '/_authenticated/visual-learning'
+      path: '/visual-learning'
+      fullPath: '/visual-learning'
+      preLoaderRoute: typeof AuthenticatedVisualLearningRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/teacher': {
       id: '/_authenticated/teacher'
       path: '/teacher'
@@ -294,6 +353,13 @@ declare module '@tanstack/react-router' {
       path: '/papers'
       fullPath: '/papers'
       preLoaderRoute: typeof AuthenticatedPapersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/offline-videos': {
+      id: '/_authenticated/offline-videos'
+      path: '/offline-videos'
+      fullPath: '/offline-videos'
+      preLoaderRoute: typeof AuthenticatedOfflineVideosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -324,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiProvidersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-videos': {
+      id: '/_authenticated/admin-videos'
+      path: '/admin-videos'
+      fullPath: '/admin-videos'
+      preLoaderRoute: typeof AuthenticatedAdminVideosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -336,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/courses'
       fullPath: '/courses/'
       preLoaderRoute: typeof AuthenticatedCoursesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/watch/$contentId': {
+      id: '/_authenticated/watch/$contentId'
+      path: '/watch/$contentId'
+      fullPath: '/watch/$contentId'
+      preLoaderRoute: typeof AuthenticatedWatchContentIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/teacher/$courseId': {
@@ -375,31 +455,39 @@ const AuthenticatedTeacherRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminVideosRoute: typeof AuthenticatedAdminVideosRoute
   AuthenticatedAiProvidersRoute: typeof AuthenticatedAiProvidersRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBookmarksRoute: typeof AuthenticatedBookmarksRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedOfflineVideosRoute: typeof AuthenticatedOfflineVideosRoute
   AuthenticatedPapersRoute: typeof AuthenticatedPapersRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRouteWithChildren
+  AuthenticatedVisualLearningRoute: typeof AuthenticatedVisualLearningRoute
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedLessonsLessonIdRoute: typeof AuthenticatedLessonsLessonIdRoute
+  AuthenticatedWatchContentIdRoute: typeof AuthenticatedWatchContentIdRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminVideosRoute: AuthenticatedAdminVideosRoute,
   AuthenticatedAiProvidersRoute: AuthenticatedAiProvidersRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBookmarksRoute: AuthenticatedBookmarksRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedOfflineVideosRoute: AuthenticatedOfflineVideosRoute,
   AuthenticatedPapersRoute: AuthenticatedPapersRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeacherRoute: AuthenticatedTeacherRouteWithChildren,
+  AuthenticatedVisualLearningRoute: AuthenticatedVisualLearningRoute,
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedLessonsLessonIdRoute: AuthenticatedLessonsLessonIdRoute,
+  AuthenticatedWatchContentIdRoute: AuthenticatedWatchContentIdRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
 }
 
