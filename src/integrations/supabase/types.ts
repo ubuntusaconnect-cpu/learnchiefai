@@ -267,6 +267,53 @@ export type Database = {
           },
         ]
       }
+      content_progress: {
+        Row: {
+          client_updated_at: string
+          completed: boolean
+          content_id: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          position_seconds: number
+          updated_at: string
+          user_id: string
+          watched_offline: boolean
+        }
+        Insert: {
+          client_updated_at?: string
+          completed?: boolean
+          content_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          position_seconds?: number
+          updated_at?: string
+          user_id: string
+          watched_offline?: boolean
+        }
+        Update: {
+          client_updated_at?: string
+          completed?: boolean
+          content_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          position_seconds?: number
+          updated_at?: string
+          user_id?: string
+          watched_offline?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_progress_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "learning_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           cover_url: string | null
@@ -320,6 +367,47 @@ export type Database = {
           },
         ]
       }
+      curriculum_nodes: {
+        Row: {
+          created_at: string
+          grade: number | null
+          id: string
+          kind: string
+          name: string
+          parent_id: string | null
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          grade?: number | null
+          id?: string
+          kind: string
+          name: string
+          parent_id?: string | null
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          grade?: number | null
+          id?: string
+          kind?: string
+          name?: string
+          parent_id?: string | null
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_nodes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           course_id: string
@@ -345,6 +433,116 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_content: {
+        Row: {
+          ai_analysis: Json | null
+          confidence: Json | null
+          content_type: string
+          created_at: string
+          curriculum_node_id: string | null
+          description: string | null
+          duration_seconds: number | null
+          error_message: string | null
+          file_path: string | null
+          file_size: number | null
+          grade: number | null
+          id: string
+          keywords: string[]
+          mime_type: string | null
+          needs_confirmation: boolean
+          objectives: string[]
+          original_filename: string | null
+          published_at: string | null
+          search_tags: string[]
+          search_vector: unknown
+          section: string | null
+          status: string
+          subject: string | null
+          subtopic: string | null
+          thumbnail_path: string | null
+          thumbnail_suggestion: string | null
+          title: string
+          topic: string | null
+          transcript: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          confidence?: Json | null
+          content_type?: string
+          created_at?: string
+          curriculum_node_id?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          grade?: number | null
+          id?: string
+          keywords?: string[]
+          mime_type?: string | null
+          needs_confirmation?: boolean
+          objectives?: string[]
+          original_filename?: string | null
+          published_at?: string | null
+          search_tags?: string[]
+          search_vector?: unknown
+          section?: string | null
+          status?: string
+          subject?: string | null
+          subtopic?: string | null
+          thumbnail_path?: string | null
+          thumbnail_suggestion?: string | null
+          title?: string
+          topic?: string | null
+          transcript?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          ai_analysis?: Json | null
+          confidence?: Json | null
+          content_type?: string
+          created_at?: string
+          curriculum_node_id?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          grade?: number | null
+          id?: string
+          keywords?: string[]
+          mime_type?: string | null
+          needs_confirmation?: boolean
+          objectives?: string[]
+          original_filename?: string | null
+          published_at?: string | null
+          search_tags?: string[]
+          search_vector?: unknown
+          section?: string | null
+          status?: string
+          subject?: string | null
+          subtopic?: string | null
+          thumbnail_path?: string | null
+          thumbnail_suggestion?: string | null
+          title?: string
+          topic?: string | null
+          transcript?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_content_curriculum_node_id_fkey"
+            columns: ["curriculum_node_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_nodes"
             referencedColumns: ["id"]
           },
         ]
@@ -728,6 +926,48 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      search_learning_content: {
+        Args: { _content_type?: string; _grade?: number; _q: string }
+        Returns: {
+          ai_analysis: Json | null
+          confidence: Json | null
+          content_type: string
+          created_at: string
+          curriculum_node_id: string | null
+          description: string | null
+          duration_seconds: number | null
+          error_message: string | null
+          file_path: string | null
+          file_size: number | null
+          grade: number | null
+          id: string
+          keywords: string[]
+          mime_type: string | null
+          needs_confirmation: boolean
+          objectives: string[]
+          original_filename: string | null
+          published_at: string | null
+          search_tags: string[]
+          search_vector: unknown
+          section: string | null
+          status: string
+          subject: string | null
+          subtopic: string | null
+          thumbnail_path: string | null
+          thumbnail_suggestion: string | null
+          title: string
+          topic: string | null
+          transcript: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "learning_content"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
     }
     Enums: {

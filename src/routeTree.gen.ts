@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedVisualLearningRouteImport } from './routes/_authenticated/visual-learning'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/_authenticated/teacher'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
@@ -21,6 +22,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authenticated/bookmarks'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedAiProvidersRouteImport } from './routes/_authenticated/ai-providers'
+import { Route as AuthenticatedAdminVideosRouteImport } from './routes/_authenticated/admin-videos'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedTeacherCourseIdRouteImport } from './routes/_authenticated/teacher.$courseId'
@@ -46,6 +48,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedVisualLearningRoute =
+  AuthenticatedVisualLearningRouteImport.update({
+    id: '/visual-learning',
+    path: '/visual-learning',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
   id: '/teacher',
   path: '/teacher',
@@ -87,6 +95,12 @@ const AuthenticatedAiProvidersRoute =
     path: '/ai-providers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminVideosRoute =
+  AuthenticatedAdminVideosRouteImport.update({
+    id: '/admin-videos',
+    path: '/admin-videos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -122,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-videos': typeof AuthenticatedAdminVideosRoute
   '/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
@@ -130,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/teacher': typeof AuthenticatedTeacherRouteWithChildren
+  '/visual-learning': typeof AuthenticatedVisualLearningRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
@@ -140,6 +156,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-videos': typeof AuthenticatedAdminVideosRoute
   '/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
@@ -148,6 +165,7 @@ export interface FileRoutesByTo {
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/teacher': typeof AuthenticatedTeacherRouteWithChildren
+  '/visual-learning': typeof AuthenticatedVisualLearningRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
@@ -160,6 +178,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin-videos': typeof AuthenticatedAdminVideosRoute
   '/_authenticated/ai-providers': typeof AuthenticatedAiProvidersRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
@@ -168,6 +187,7 @@ export interface FileRoutesById {
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/teacher': typeof AuthenticatedTeacherRouteWithChildren
+  '/_authenticated/visual-learning': typeof AuthenticatedVisualLearningRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/_authenticated/teacher/$courseId': typeof AuthenticatedTeacherCourseIdRoute
@@ -180,6 +200,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/admin'
+    | '/admin-videos'
     | '/ai-providers'
     | '/assistant'
     | '/bookmarks'
@@ -188,6 +209,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/teacher'
+    | '/visual-learning'
     | '/courses/$courseId'
     | '/lessons/$lessonId'
     | '/teacher/$courseId'
@@ -198,6 +220,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/admin'
+    | '/admin-videos'
     | '/ai-providers'
     | '/assistant'
     | '/bookmarks'
@@ -206,6 +229,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/teacher'
+    | '/visual-learning'
     | '/courses/$courseId'
     | '/lessons/$lessonId'
     | '/teacher/$courseId'
@@ -217,6 +241,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/admin-videos'
     | '/_authenticated/ai-providers'
     | '/_authenticated/assistant'
     | '/_authenticated/bookmarks'
@@ -225,6 +250,7 @@ export interface FileRouteTypes {
     | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/teacher'
+    | '/_authenticated/visual-learning'
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/lessons/$lessonId'
     | '/_authenticated/teacher/$courseId'
@@ -267,6 +293,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/visual-learning': {
+      id: '/_authenticated/visual-learning'
+      path: '/visual-learning'
+      fullPath: '/visual-learning'
+      preLoaderRoute: typeof AuthenticatedVisualLearningRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/teacher': {
       id: '/_authenticated/teacher'
@@ -324,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiProvidersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-videos': {
+      id: '/_authenticated/admin-videos'
+      path: '/admin-videos'
+      fullPath: '/admin-videos'
+      preLoaderRoute: typeof AuthenticatedAdminVideosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -375,6 +415,7 @@ const AuthenticatedTeacherRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminVideosRoute: typeof AuthenticatedAdminVideosRoute
   AuthenticatedAiProvidersRoute: typeof AuthenticatedAiProvidersRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBookmarksRoute: typeof AuthenticatedBookmarksRoute
@@ -383,6 +424,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRouteWithChildren
+  AuthenticatedVisualLearningRoute: typeof AuthenticatedVisualLearningRoute
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedLessonsLessonIdRoute: typeof AuthenticatedLessonsLessonIdRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
@@ -390,6 +432,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminVideosRoute: AuthenticatedAdminVideosRoute,
   AuthenticatedAiProvidersRoute: AuthenticatedAiProvidersRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBookmarksRoute: AuthenticatedBookmarksRoute,
@@ -398,6 +441,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeacherRoute: AuthenticatedTeacherRouteWithChildren,
+  AuthenticatedVisualLearningRoute: AuthenticatedVisualLearningRoute,
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedLessonsLessonIdRoute: AuthenticatedLessonsLessonIdRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
