@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, BookOpen, Bot, Search, GraduationCap, Settings,
   Shield, Bell, LogOut, Menu, X, Bookmark, FileText, Zap,
-} from "lucide-react";
+} , Video, HardDrive from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 function navFor(role: AppRole) {
@@ -17,6 +17,8 @@ function navFor(role: AppRole) {
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/courses", label: "Courses", icon: BookOpen },
     { to: "/papers", label: "Question Papers", icon: FileText },
+    { to: "/visual-learning", label: "Visual Learning", icon: Video },
+    { to: "/offline-videos", label: "Offline Videos", icon: HardDrive },
     { to: "/assistant", label: "AI Assistant", icon: Bot },
     { to: "/search", label: "Search", icon: Search },
     { to: "/bookmarks", label: "Bookmarks", icon: Bookmark },
@@ -27,6 +29,7 @@ function navFor(role: AppRole) {
     base.push({ to: "/admin", label: "Admin", icon: Shield });
     base.push({ to: "/ai-providers", label: "AI Providers", icon: Zap });
   }
+  if (role === "admin") base.push({ to: "/admin-videos", label: "Video Manager", icon: Video });
   base.push({ to: "/settings", label: "Settings", icon: Settings });
   return base;
 }
