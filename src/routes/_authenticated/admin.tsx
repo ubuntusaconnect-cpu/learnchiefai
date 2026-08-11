@@ -51,6 +51,7 @@ function AdminPage() {
         <TabsContent value="users" className="mt-4"><UsersPanel /></TabsContent>
         <TabsContent value="subjects" className="mt-4"><SubjectsPanel /></TabsContent>
         <TabsContent value="papers" className="mt-4"><PapersPanel /></TabsContent>
+        <TabsContent value="ingest" className="mt-4"><ContentUploadCenter /></TabsContent>
         <TabsContent value="bulk" className="mt-4"><BulkPaperImporter /></TabsContent>
         <TabsContent value="content" className="mt-4"><ContentPanel /></TabsContent>
         <TabsContent value="announcements" className="mt-4"><AnnouncementsPanel /></TabsContent>
