@@ -43,6 +43,7 @@ function AdminPage() {
           <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" /> Users</TabsTrigger>
           <TabsTrigger value="subjects"><BookOpen className="mr-2 h-4 w-4" /> Subjects</TabsTrigger>
           <TabsTrigger value="papers"><FileText className="mr-2 h-4 w-4" /> Question Papers</TabsTrigger>
+          <TabsTrigger value="ingest"><UploadCloud className="mr-2 h-4 w-4" /> Upload Center</TabsTrigger>
           <TabsTrigger value="bulk"><UploadCloud className="mr-2 h-4 w-4" /> Bulk Import</TabsTrigger>
           <TabsTrigger value="content"><Sparkles className="mr-2 h-4 w-4" /> Content</TabsTrigger>
           <TabsTrigger value="announcements"><Megaphone className="mr-2 h-4 w-4" /> Announcements</TabsTrigger>
