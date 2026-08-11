@@ -520,7 +520,7 @@ export const adminUpdateContent = createServerFn({ method: "POST" })
     const { snapshotVersion } = await import("./ingest.server");
     await snapshotVersion({ contentId: data.contentId, changedBy: context.userId, note: "Metadata edited" });
 
-    const patch: Record<string, unknown> = { ...data.patch };
+    const patch = { ...data.patch } as Record<string, unknown>;
     if (data.patch.grade && data.patch.subject) {
       patch.curriculum_node_id = await ensureCurriculumPath({
         grade: data.patch.grade,
@@ -530,7 +530,7 @@ export const adminUpdateContent = createServerFn({ method: "POST" })
         subtopic: data.patch.subtopic ?? null,
       });
     }
-    const { error } = await supabaseAdmin.from("learning_content").update(patch).eq("id", data.contentId);
+    const { error } = await supabaseAdmin.from("learning_content").update(patch as never).eq("id", data.contentId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
