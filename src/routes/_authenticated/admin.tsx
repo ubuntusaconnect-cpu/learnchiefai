@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles, FileText, Upload, Pencil, X, UploadCloud } from "lucide-react";
 import { CAPS_SUBJECTS, GRADES, TERMS, yearRange } from "@/lib/papers";
 import { BulkPaperImporter } from "@/components/app/BulkPaperImporter";
+import { ContentUploadCenter } from "@/components/app/ContentUploadCenter";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
