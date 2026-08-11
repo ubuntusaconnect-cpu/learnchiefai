@@ -14,6 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_events: {
+        Row: {
+          content_id: string | null
+          created_at: string
+          duration_seconds: number | null
+          event_type: string
+          grade: number | null
+          id: string
+          lesson_id: string | null
+          metadata: Json
+          occurred_at: string
+          offline: boolean
+          session_id: string | null
+          subject: string | null
+          synced_at: string
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          content_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          event_type: string
+          grade?: number | null
+          id: string
+          lesson_id?: string | null
+          metadata?: Json
+          occurred_at: string
+          offline?: boolean
+          session_id?: string | null
+          subject?: string | null
+          synced_at?: string
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          content_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          event_type?: string
+          grade?: number | null
+          id?: string
+          lesson_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          offline?: boolean
+          session_id?: string | null
+          subject?: string | null
+          synced_at?: string
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "learner_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          detail: string | null
+          id: string
+          record_id: string | null
+          record_type: string | null
+          subject_user_id: string | null
+          success: boolean
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          record_id?: string | null
+          record_type?: string | null
+          subject_user_id?: string | null
+          success?: boolean
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          record_id?: string | null
+          record_type?: string | null
+          subject_user_id?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       ai_cache: {
         Row: {
           created_at: string
@@ -53,22 +151,34 @@ export type Database = {
       ai_conversations: {
         Row: {
           created_at: string
+          grade: number | null
           id: string
+          offline: boolean
+          subject: string | null
           title: string
+          topic: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          grade?: number | null
           id?: string
+          offline?: boolean
+          subject?: string | null
           title?: string
+          topic?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          grade?: number | null
           id?: string
+          offline?: boolean
+          subject?: string | null
           title?: string
+          topic?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -79,22 +189,37 @@ export type Database = {
           content: string
           conversation_id: string
           created_at: string
+          duration_ms: number | null
           id: string
+          model: string | null
+          offline: boolean
+          provider: string | null
           role: string
+          status: string | null
         }
         Insert: {
           content: string
           conversation_id: string
           created_at?: string
+          duration_ms?: number | null
           id?: string
+          model?: string | null
+          offline?: boolean
+          provider?: string | null
           role: string
+          status?: string | null
         }
         Update: {
           content?: string
           conversation_id?: string
           created_at?: string
+          duration_ms?: number | null
           id?: string
+          model?: string | null
+          offline?: boolean
+          provider?: string | null
           role?: string
+          status?: string | null
         }
         Relationships: [
           {
@@ -238,6 +363,27 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           created_at: string
@@ -310,6 +456,188 @@ export type Database = {
             columns: ["content_id"]
             isOneToOne: false
             referencedRelation: "learning_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_uploads: {
+        Row: {
+          ai_classification: Json | null
+          bucket: string | null
+          confidence: Json | null
+          content_type: string | null
+          created_at: string
+          destination: Json | null
+          duplicate_decision: string | null
+          duplicate_kind: string | null
+          duplicate_of_content_id: string | null
+          duplicate_of_paper_id: string | null
+          duplicate_score: number | null
+          error_message: string | null
+          extracted_text: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          needs_review: boolean
+          original_filename: string
+          overall_confidence: number | null
+          progress: number
+          published_content_id: string | null
+          published_paper_id: string | null
+          sha256: string | null
+          stage: string
+          status: string
+          text_hash: string | null
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          ai_classification?: Json | null
+          bucket?: string | null
+          confidence?: Json | null
+          content_type?: string | null
+          created_at?: string
+          destination?: Json | null
+          duplicate_decision?: string | null
+          duplicate_kind?: string | null
+          duplicate_of_content_id?: string | null
+          duplicate_of_paper_id?: string | null
+          duplicate_score?: number | null
+          error_message?: string | null
+          extracted_text?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          needs_review?: boolean
+          original_filename: string
+          overall_confidence?: number | null
+          progress?: number
+          published_content_id?: string | null
+          published_paper_id?: string | null
+          sha256?: string | null
+          stage?: string
+          status?: string
+          text_hash?: string | null
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          ai_classification?: Json | null
+          bucket?: string | null
+          confidence?: Json | null
+          content_type?: string | null
+          created_at?: string
+          destination?: Json | null
+          duplicate_decision?: string | null
+          duplicate_kind?: string | null
+          duplicate_of_content_id?: string | null
+          duplicate_of_paper_id?: string | null
+          duplicate_score?: number | null
+          error_message?: string | null
+          extracted_text?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          needs_review?: boolean
+          original_filename?: string
+          overall_confidence?: number | null
+          progress?: number
+          published_content_id?: string | null
+          published_paper_id?: string | null
+          sha256?: string | null
+          stage?: string
+          status?: string
+          text_hash?: string | null
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_uploads_duplicate_of_content_id_fkey"
+            columns: ["duplicate_of_content_id"]
+            isOneToOne: false
+            referencedRelation: "learning_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_uploads_duplicate_of_paper_id_fkey"
+            columns: ["duplicate_of_paper_id"]
+            isOneToOne: false
+            referencedRelation: "question_papers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_uploads_published_content_id_fkey"
+            columns: ["published_content_id"]
+            isOneToOne: false
+            referencedRelation: "learning_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_uploads_published_paper_id_fkey"
+            columns: ["published_paper_id"]
+            isOneToOne: false
+            referencedRelation: "question_papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_versions: {
+        Row: {
+          bucket: string | null
+          changed_by: string | null
+          content_id: string | null
+          created_at: string
+          file_path: string | null
+          id: string
+          note: string | null
+          paper_id: string | null
+          sha256: string | null
+          snapshot: Json | null
+          version: number
+        }
+        Insert: {
+          bucket?: string | null
+          changed_by?: string | null
+          content_id?: string | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          note?: string | null
+          paper_id?: string | null
+          sha256?: string | null
+          snapshot?: Json | null
+          version: number
+        }
+        Update: {
+          bucket?: string | null
+          changed_by?: string | null
+          content_id?: string | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          note?: string | null
+          paper_id?: string | null
+          sha256?: string | null
+          snapshot?: Json | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_versions_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "learning_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_versions_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "question_papers"
             referencedColumns: ["id"]
           },
         ]
@@ -437,32 +765,84 @@ export type Database = {
           },
         ]
       }
+      learner_sessions: {
+        Row: {
+          created_at: string
+          device: string | null
+          end_reason: string | null
+          ended_at: string | null
+          id: string
+          last_seen_at: string
+          platform: string | null
+          started_at: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device?: string | null
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          last_seen_at?: string
+          platform?: string | null
+          started_at?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device?: string | null
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          last_seen_at?: string
+          platform?: string | null
+          started_at?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       learning_content: {
         Row: {
           ai_analysis: Json | null
+          archived: boolean
+          bucket: string | null
           confidence: Json | null
           content_type: string
           created_at: string
           curriculum_node_id: string | null
           description: string | null
+          difficulty: string | null
           duration_seconds: number | null
           error_message: string | null
+          exam_type: string | null
+          extracted_text: string | null
           file_path: string | null
           file_size: number | null
           grade: number | null
           id: string
           keywords: string[]
+          language: string | null
           mime_type: string | null
           needs_confirmation: boolean
           objectives: string[]
           original_filename: string | null
+          paper_number: number | null
           published_at: string | null
           search_tags: string[]
           search_vector: unknown
           section: string | null
+          sha256: string | null
           status: string
           subject: string | null
           subtopic: string | null
+          term: number | null
+          text_hash: string | null
           thumbnail_path: string | null
           thumbnail_suggestion: string | null
           title: string
@@ -470,32 +850,44 @@ export type Database = {
           transcript: string | null
           updated_at: string
           uploaded_by: string | null
+          version: number
+          year: number | null
         }
         Insert: {
           ai_analysis?: Json | null
+          archived?: boolean
+          bucket?: string | null
           confidence?: Json | null
           content_type?: string
           created_at?: string
           curriculum_node_id?: string | null
           description?: string | null
+          difficulty?: string | null
           duration_seconds?: number | null
           error_message?: string | null
+          exam_type?: string | null
+          extracted_text?: string | null
           file_path?: string | null
           file_size?: number | null
           grade?: number | null
           id?: string
           keywords?: string[]
+          language?: string | null
           mime_type?: string | null
           needs_confirmation?: boolean
           objectives?: string[]
           original_filename?: string | null
+          paper_number?: number | null
           published_at?: string | null
           search_tags?: string[]
           search_vector?: unknown
           section?: string | null
+          sha256?: string | null
           status?: string
           subject?: string | null
           subtopic?: string | null
+          term?: number | null
+          text_hash?: string | null
           thumbnail_path?: string | null
           thumbnail_suggestion?: string | null
           title?: string
@@ -503,32 +895,44 @@ export type Database = {
           transcript?: string | null
           updated_at?: string
           uploaded_by?: string | null
+          version?: number
+          year?: number | null
         }
         Update: {
           ai_analysis?: Json | null
+          archived?: boolean
+          bucket?: string | null
           confidence?: Json | null
           content_type?: string
           created_at?: string
           curriculum_node_id?: string | null
           description?: string | null
+          difficulty?: string | null
           duration_seconds?: number | null
           error_message?: string | null
+          exam_type?: string | null
+          extracted_text?: string | null
           file_path?: string | null
           file_size?: number | null
           grade?: number | null
           id?: string
           keywords?: string[]
+          language?: string | null
           mime_type?: string | null
           needs_confirmation?: boolean
           objectives?: string[]
           original_filename?: string | null
+          paper_number?: number | null
           published_at?: string | null
           search_tags?: string[]
           search_vector?: unknown
           section?: string | null
+          sha256?: string | null
           status?: string
           subject?: string | null
           subtopic?: string | null
+          term?: number | null
+          text_hash?: string | null
           thumbnail_path?: string | null
           thumbnail_suggestion?: string | null
           title?: string
@@ -536,6 +940,8 @@ export type Database = {
           transcript?: string | null
           updated_at?: string
           uploaded_by?: string | null
+          version?: number
+          year?: number | null
         }
         Relationships: [
           {
@@ -695,49 +1101,64 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          exam_type: string | null
           grade: number
           id: string
           memo_path: string | null
+          memo_sha256: string | null
           memo_url: string | null
+          paper_number: number | null
           paper_path: string | null
           paper_url: string | null
+          sha256: string | null
           subject: string
           term: number
           title: string
           updated_at: string
           uploaded_by: string | null
+          version: number
           year: number
         }
         Insert: {
           created_at?: string
           description?: string | null
+          exam_type?: string | null
           grade: number
           id?: string
           memo_path?: string | null
+          memo_sha256?: string | null
           memo_url?: string | null
+          paper_number?: number | null
           paper_path?: string | null
           paper_url?: string | null
+          sha256?: string | null
           subject: string
           term: number
           title: string
           updated_at?: string
           uploaded_by?: string | null
+          version?: number
           year: number
         }
         Update: {
           created_at?: string
           description?: string | null
+          exam_type?: string | null
           grade?: number
           id?: string
           memo_path?: string | null
+          memo_sha256?: string | null
           memo_url?: string | null
+          paper_number?: number | null
           paper_path?: string | null
           paper_url?: string | null
+          sha256?: string | null
           subject?: string
           term?: number
           title?: string
           updated_at?: string
           uploaded_by?: string | null
+          version?: number
           year?: number
         }
         Relationships: []
@@ -931,29 +1352,39 @@ export type Database = {
         Args: { _content_type?: string; _grade?: number; _q: string }
         Returns: {
           ai_analysis: Json | null
+          archived: boolean
+          bucket: string | null
           confidence: Json | null
           content_type: string
           created_at: string
           curriculum_node_id: string | null
           description: string | null
+          difficulty: string | null
           duration_seconds: number | null
           error_message: string | null
+          exam_type: string | null
+          extracted_text: string | null
           file_path: string | null
           file_size: number | null
           grade: number | null
           id: string
           keywords: string[]
+          language: string | null
           mime_type: string | null
           needs_confirmation: boolean
           objectives: string[]
           original_filename: string | null
+          paper_number: number | null
           published_at: string | null
           search_tags: string[]
           search_vector: unknown
           section: string | null
+          sha256: string | null
           status: string
           subject: string | null
           subtopic: string | null
+          term: number | null
+          text_hash: string | null
           thumbnail_path: string | null
           thumbnail_suggestion: string | null
           title: string
@@ -961,6 +1392,8 @@ export type Database = {
           transcript: string | null
           updated_at: string
           uploaded_by: string | null
+          version: number
+          year: number | null
         }[]
         SetofOptions: {
           from: "*"
