@@ -4,9 +4,36 @@ import { createHash } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type ChatRole = "system" | "user" | "assistant";
+export interface AiAttachment {
+  /** "image" → sent as real vision input. "document" → PDF sent as document input, other formats as extracted text. */
+  kind: "image" | "document";
+  name: string;
+  mimeType: string;
+  /** Raw base64 (no data: prefix). Omitted when only extracted text is available. */
+  base64?: string;
+  /** Text pulled out of the document (DOCX/TXT/CSV/PPTX, or PDF text layer). */
+  text?: string | null;
+}
+
 export interface ChatMessage {
   role: ChatRole;
   content: string;
+  /** Real file inputs attached to this message. */
+  attachments?: AiAttachment[];
+}
+
+function dataUrl(a: AiAttachment): string {
+  return `data:${a.mimeType};base64,${a.base64}`;
+}
+function isPdf(a: AiAttachment): boolean {
+  return a.mimeType === "application/pdf" || /\.pdf$/i.test(a.name);
+}
+function textBlock(a: AiAttachment): string | null {
+  if (!a.text) return null;
+  return `--- Attached file: ${a.name} (${a.mimeType}) — extracted text ---\n${a.text.slice(0, 60000)}\n--- end of ${a.name} ---`;
+}
+export function hasAttachments(messages: ChatMessage[]): boolean {
+  return messages.some((m) => (m.attachments?.length ?? 0) > 0);
 }
 
 export interface GatewayOptions {
@@ -50,6 +77,17 @@ const DEFAULT_MODEL: Record<ProviderKey, string> = {
   openai: "gpt-4o-mini",
   anthropic: "claude-3-5-haiku-20241022",
   mistral: "mistral-small-latest",
+};
+
+// Vision/document-capable model used automatically when a message carries files.
+export const VISION_MODEL: Record<ProviderKey, string | null> = {
+  lovable: "google/gemini-3.6-flash",
+  gemini: "gemini-2.0-flash",
+  groq: "meta-llama/llama-4-scout-17b-16e-instruct",
+  openrouter: "google/gemini-2.0-flash-exp:free",
+  openai: "gpt-4o-mini",
+  anthropic: "claude-3-5-sonnet-20241022",
+  mistral: "pixtral-12b-2409",
 };
 
 export const PROVIDER_META: Record<ProviderKey, { name: string; envVar: string; defaultModel: string; docsUrl: string }> = {
@@ -106,7 +144,24 @@ async function callOpenAiCompatible(
     },
     body: JSON.stringify({
       model,
-      messages,
+      messages: messages.map((m) => {
+        const atts = m.attachments ?? [];
+        if (atts.length === 0) return { role: m.role, content: m.content };
+        const parts: any[] = [{ type: "text", text: m.content || "(see attached files)" }];
+        for (const a of atts) {
+          if (a.kind === "image" && a.base64) {
+            parts.push({ type: "image_url", image_url: { url: dataUrl(a) } });
+          } else if (isPdf(a) && a.base64) {
+            parts.push({ type: "file", file: { filename: a.name, file_data: dataUrl(a) } });
+            const t = textBlock(a);
+            if (t) parts.push({ type: "text", text: t });
+          } else {
+            const t = textBlock(a);
+            parts.push({ type: "text", text: t ?? `--- Attached file: ${a.name} (${a.mimeType}) — no readable content could be extracted ---` });
+          }
+        }
+        return { role: m.role, content: parts };
+      }),
       ...(opts?.temperature != null ? { temperature: opts.temperature } : {}),
       ...(opts?.maxTokens ? { max_tokens: opts.maxTokens } : {}),
     }),
@@ -130,7 +185,18 @@ async function callGemini(apiKey: string, model: string, messages: ChatMessage[]
   const system = messages.filter(m => m.role === "system").map(m => m.content).join("\n\n");
   const contents = messages
     .filter(m => m.role !== "system")
-    .map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
+    .map(m => {
+      const parts: any[] = [{ text: m.content || "(see attached files)" }];
+      for (const a of m.attachments ?? []) {
+        if (a.base64 && (a.kind === "image" || isPdf(a))) {
+          parts.push({ inlineData: { mimeType: a.mimeType, data: a.base64 } });
+        }
+        const t = textBlock(a);
+        if (t && !(a.kind === "image")) parts.push({ text: t });
+        if (!a.base64 && !t) parts.push({ text: `--- Attached file: ${a.name} (${a.mimeType}) — no readable content could be extracted ---` });
+      }
+      return { role: m.role === "assistant" ? "model" : "user", parts };
+    });
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const res = await fetch(url, {
@@ -163,7 +229,23 @@ async function callGemini(apiKey: string, model: string, messages: ChatMessage[]
 
 async function callAnthropic(apiKey: string, model: string, messages: ChatMessage[], opts?: GatewayOptions): Promise<NormalizedResponse> {
   const system = messages.filter(m => m.role === "system").map(m => m.content).join("\n\n");
-  const chat = messages.filter(m => m.role !== "system").map(m => ({ role: m.role, content: m.content }));
+  const chat = messages.filter(m => m.role !== "system").map(m => {
+    const atts = m.attachments ?? [];
+    if (atts.length === 0) return { role: m.role, content: m.content };
+    const blocks: any[] = [];
+    for (const a of atts) {
+      if (a.kind === "image" && a.base64) {
+        blocks.push({ type: "image", source: { type: "base64", media_type: a.mimeType, data: a.base64 } });
+      } else if (isPdf(a) && a.base64) {
+        blocks.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: a.base64 } });
+      } else {
+        const t = textBlock(a);
+        blocks.push({ type: "text", text: t ?? `--- Attached file: ${a.name} (${a.mimeType}) — no readable content could be extracted ---` });
+      }
+    }
+    blocks.push({ type: "text", text: m.content || "(see attached files)" });
+    return { role: m.role, content: blocks };
+  });
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -250,7 +332,12 @@ function hashPrompt(messages: ChatMessage[], operation?: string): string {
   const h = createHash("sha256");
   h.update(operation ?? "");
   h.update("\u0001");
-  for (const m of messages) { h.update(m.role); h.update("\u0002"); h.update(m.content); h.update("\u0003"); }
+  for (const m of messages) {
+    h.update(m.role); h.update("\u0002"); h.update(m.content); h.update("\u0003");
+    for (const a of m.attachments ?? []) {
+      h.update(a.name); h.update(a.mimeType); h.update(String(a.base64?.length ?? 0)); h.update(a.text ?? ""); h.update("\u0004");
+    }
+  }
   return h.digest("hex");
 }
 
@@ -369,7 +456,10 @@ export async function aiChat(messages: ChatMessage[], opts: GatewayOptions = {})
   const attempts: GatewayResult["attempts"] = [];
   let lastError: Error | null = null;
 
-  for (const { provider, model } of chain) {
+  const multimodal = hasAttachments(messages);
+
+  for (const { provider, model: configuredModel } of chain) {
+    const model = multimodal ? (VISION_MODEL[provider] || configuredModel) : configuredModel;
     const apiKey = await getApiKey(provider);
     if (!apiKey) continue;
 
