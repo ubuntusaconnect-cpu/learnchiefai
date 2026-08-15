@@ -89,7 +89,7 @@ export async function extractAttachmentText(
 
   if (/\.docx$/.test(name)) {
     try {
-      const mammoth: any = await import("mammoth/mammoth.browser");
+      const mammoth: any = await import(/* @vite-ignore */ "mammoth/mammoth.browser" as string);
       const { value } = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
       return { text: (value || "").trim() || null };
     } catch (e: any) {
