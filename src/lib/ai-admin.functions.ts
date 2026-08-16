@@ -36,9 +36,8 @@ export const listAiProviders = createServerFn({ method: "GET" })
       const cfg = byKey.get(key);
       const has = await providerHasKey(key);
       const sec = secretMap.get(key);
-      const maskedKey = sec?.api_key
-        ? `${sec.api_key.slice(0, 4)}••••${sec.api_key.slice(-4)}`
-        : null;
+      // Only the last 4 characters ever leave the server.
+      const maskedKey = sec?.api_key ? `••••••••${sec.api_key.slice(-4)}` : null;
       rows.push({
         providerKey: key,
         name: PROVIDER_META[key].name,
