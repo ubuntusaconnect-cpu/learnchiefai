@@ -57,9 +57,8 @@ export const sendAiMessage = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { enforceRateLimit, RATE_LIMITS, SafeError, logSecurityEvent } = await import(
-      "@/lib/security.server"
-    );
+    const { enforceRateLimit, RATE_LIMITS, SafeError, logSecurityEvent, wrapUntrusted } =
+      await import("@/lib/security.server");
     // Abuse / cost protection: burst limit plus a daily ceiling per learner.
     await enforceRateLimit(RATE_LIMITS.aiChat, userId);
     await enforceRateLimit(RATE_LIMITS.aiChatDaily, userId);
