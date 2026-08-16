@@ -48,23 +48,37 @@ export const sendAiMessage = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { enforceRateLimit, RATE_LIMITS, SafeError, logSecurityEvent } = await import(
+      "@/lib/security.server"
+    );
+    // Abuse / cost protection: burst limit plus a daily ceiling per learner.
+    await enforceRateLimit(RATE_LIMITS.aiChat, userId);
+    await enforceRateLimit(RATE_LIMITS.aiChatDaily, userId);
+
     const incoming = data.attachments ?? [];
     const text = data.message.trim();
 
     if (!text && incoming.length === 0) {
-      throw new Error("Type a question or attach a file first.");
+      throw new SafeError("Type a question or attach a file first.");
     }
 
     // Every attachment must live inside the caller's own storage folder.
     for (const a of incoming) {
       if (!a.storagePath.startsWith(`${userId}/`)) {
-        throw new Error("You can only send your own attachments.");
+        await logSecurityEvent({
+          event: "attachment_path_violation",
+          severity: "critical",
+          userId,
+          detail: { prefix: a.storagePath.split("/")[0] ?? "" },
+        });
+        throw new SafeError("You can only send your own attachments.");
       }
     }
     const totalBytes = incoming.reduce((n, a) => n + a.sizeBytes, 0);
     if (totalBytes > MAX_TOTAL_BYTES) {
-      throw new Error("These attachments are too large to analyse together. Please send fewer or smaller files.");
+      throw new SafeError("These attachments are too large to analyse together. Please send fewer or smaller files.");
     }
+
 
     // Ensure conversation
     let conversationId = data.conversationId;
