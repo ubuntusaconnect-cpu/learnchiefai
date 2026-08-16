@@ -5,9 +5,12 @@ import { z } from "zod";
 const ProviderKeyEnum = z.enum(["lovable", "gemini", "groq", "openrouter", "openai", "anthropic", "mistral"]);
 
 async function assertAdmin(context: { supabase: any; userId: string }) {
-  const { data } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
-  const isAdmin = (data ?? []).some((r: any) => r.role === "admin");
-  if (!isAdmin) throw new Error("Admins only.");
+  const [{ assertAdmin: assertAdminRole }, { enforceRateLimit, RATE_LIMITS }] = await Promise.all([
+    import("./authz.server"),
+    import("./security.server"),
+  ]);
+  await assertAdminRole(context.supabase, context.userId, "ai-provider-admin");
+  await enforceRateLimit(RATE_LIMITS.adminWrite, context.userId);
 }
 
 // ── List providers (with masked key preview + status) ──────────────────────
