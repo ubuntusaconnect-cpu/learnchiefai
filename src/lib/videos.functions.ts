@@ -18,6 +18,8 @@ export const analyzeVideo = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertAdmin, lowConfidence } = await import("./videos.server");
     await assertAdmin(context.supabase, context.userId);
+    const { enforceRateLimit, RATE_LIMITS } = await import("./security.server");
+    await enforceRateLimit(RATE_LIMITS.videoAnalyze, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     await supabaseAdmin
