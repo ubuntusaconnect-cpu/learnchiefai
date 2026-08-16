@@ -166,12 +166,13 @@ export const enhanceLesson = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data, context }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI is not configured.");
     const { supabase, userId } = context;
+    const { assertStaff } = await import("./authz.server");
+    const { enforceRateLimit, RATE_LIMITS, SafeError } = await import("./security.server");
+    await assertStaff(supabase, userId, "enhanceLesson");
+    await enforceRateLimit(RATE_LIMITS.lessonEnhance, userId);
+    if (!apiKey) throw new SafeError("AI is not configured.");
 
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "teacher");
-    if (!allowed) throw new Error("Only teachers or admins can enhance lessons.");
 
     const { data: lesson, error } = await supabase
       .from("lessons")
@@ -248,9 +249,8 @@ export const listAllLessonIds = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "teacher");
-    if (!allowed) throw new Error("Only teachers or admins can enhance lessons.");
+    const { assertStaff } = await import("./authz.server");
+    await assertStaff(supabase, userId, "listAllLessonIds");
     const { data, error } = await supabase.from("lessons").select("id, title").order("created_at");
     if (error) throw error;
     return data ?? [];

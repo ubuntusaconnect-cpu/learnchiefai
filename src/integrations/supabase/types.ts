@@ -1338,6 +1338,54 @@ export type Database = {
           },
         ]
       }
+      rate_limit_events: {
+        Row: {
+          bucket: string
+          created_at: string
+          id: number
+          subject: string
+        }
+        Insert: {
+          bucket: string
+          created_at?: string
+          id?: number
+          subject: string
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          id?: number
+          subject?: string
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string
+          detail: Json
+          event: string
+          id: string
+          severity: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          event: string
+          id?: string
+          severity?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          event?: string
+          id?: string
+          severity?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           category: string
@@ -1394,6 +1442,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_quiz_answer: {
+        Args: { _answer: string; _question_id: string }
+        Returns: Json
+      }
+      consume_rate_limit: {
+        Args: {
+          _bucket: string
+          _limit: number
+          _subject: string
+          _window_seconds: number
+        }
+        Returns: Json
+      }
       get_primary_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

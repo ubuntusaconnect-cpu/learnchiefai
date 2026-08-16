@@ -91,12 +91,21 @@ function SignInForm({ busy, setBusy }: { busy: boolean; setBusy: (b: boolean) =>
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signIn, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setBusy(false);
+      // Deliberately generic: never reveal whether the account exists.
+      return toast.error("Incorrect email or password.");
+    }
+    // Destination comes from the user's real role in the database, never from
+    // the email they typed or anything stored in the browser.
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: signIn.user!.id,
+      _role: "admin",
+    });
     setBusy(false);
-    if (error) return toast.error(error.message);
     toast.success("Welcome back!");
-    const isAdmin = email.trim().toLowerCase() === "lembaartworks@gmail.com";
-    navigate({ to: isAdmin ? "/admin" : "/dashboard" });
+    navigate({ to: isAdmin === true ? "/admin" : "/dashboard" });
   }
 
   return (
