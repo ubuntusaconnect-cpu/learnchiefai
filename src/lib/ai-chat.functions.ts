@@ -224,8 +224,6 @@ export const sendAiMessage = createServerFn({ method: "POST" })
           noteOnly += `\n[earlier attachment: ${r.file_name}]`;
         }
       }
-
-      }
       messages.push({
         role,
         content: m.content + noteOnly,
