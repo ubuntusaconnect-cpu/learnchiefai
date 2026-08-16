@@ -3,9 +3,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /** Verify the caller really is an admin (server-side authorization). */
 export async function assertAdmin(supabase: any, userId: string) {
-  const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (error) throw new Error(`Could not verify your permissions: ${error.message}`);
-  if (data !== true) throw new Error("Forbidden: administrator access is required.");
+  const { assertAdmin: assertAdminRole } = await import("./authz.server");
+  await assertAdminRole(supabase, userId, "video-admin");
 }
 
 async function findOrCreateNode(

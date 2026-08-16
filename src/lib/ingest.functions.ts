@@ -5,9 +5,14 @@ import { z } from "zod";
 const uuid = z.string().uuid();
 
 async function assertAdmin(context: { supabase: any; userId: string }) {
-  const { data, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-  if (error) throw new Error(`Could not verify your permissions: ${error.message}`);
-  if (data !== true) throw new Error("Forbidden: administrator access is required.");
+  const [{ assertAdmin: assertAdminRole }, { enforceRateLimit, RATE_LIMITS }] = await Promise.all([
+    import("./authz.server"),
+    import("./security.server"),
+  ]);
+  await assertAdminRole(context.supabase, context.userId, "content-admin");
+  // Even admins are throttled, so a stolen admin session cannot be used to
+  // hammer the ingest pipeline or the AI providers.
+  await enforceRateLimit(RATE_LIMITS.adminWrite, context.userId);
 }
 
 // ── 1. Register the file, hash-check for duplicates before anything is stored ──
