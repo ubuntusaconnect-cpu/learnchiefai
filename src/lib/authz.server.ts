@@ -7,8 +7,12 @@
  */
 import { logSecurityEvent, SafeError } from "./security.server";
 
-type AuthedClient = {
-  rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+// Structural type: any Supabase client bound to the caller's own token.
+export type AuthedClient = {
+  rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "teacher" | "student" }) => PromiseLike<{
+    data: unknown;
+    error: { message: string } | null;
+  }>;
 };
 
 async function hasRole(supabase: AuthedClient, userId: string, role: "admin" | "teacher") {
