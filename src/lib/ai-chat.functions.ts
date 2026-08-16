@@ -197,6 +197,8 @@ export const sendAiMessage = createServerFn({ method: "POST" })
       const attachments: Att[] = [];
       let noteOnly = "";
       for (const r of rows) {
+        // File text is untrusted: fence it so the model treats it as data.
+        const safeText = r.extracted_text ? wrapUntrusted("file", r.extracted_text) : null;
         const isVisual = r.kind === "image" || r.mime_type === "application/pdf";
         if (bytesAllowed.has(m.id) && isVisual) {
           const base64 = await loadBytes(r.storage_path, r.mime_type);
@@ -206,21 +208,23 @@ export const sendAiMessage = createServerFn({ method: "POST" })
               name: r.file_name,
               mimeType: r.mime_type,
               base64,
-              text: r.extracted_text,
+              text: safeText,
             });
             continue;
           }
         }
-        if (r.extracted_text) {
+        if (safeText) {
           attachments.push({
             kind: "document",
             name: r.file_name,
             mimeType: r.mime_type,
-            text: r.extracted_text,
+            text: safeText,
           });
         } else {
           noteOnly += `\n[earlier attachment: ${r.file_name}]`;
         }
+      }
+
       }
       messages.push({
         role,
