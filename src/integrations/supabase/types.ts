@@ -1123,33 +1123,57 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           avatar_url: string | null
           bio: string | null
           created_at: string
           full_name: string | null
           grade: string | null
           id: string
+          last_login_at: string | null
+          last_logout_at: string | null
+          last_seen_at: string | null
+          login_count: number
           school: string | null
+          status_changed_at: string | null
+          status_changed_by: string | null
+          status_reason: string | null
           updated_at: string
         }
         Insert: {
+          account_status?: string
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           full_name?: string | null
           grade?: string | null
           id: string
+          last_login_at?: string | null
+          last_logout_at?: string | null
+          last_seen_at?: string | null
+          login_count?: number
           school?: string | null
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason?: string | null
           updated_at?: string
         }
         Update: {
+          account_status?: string
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           full_name?: string | null
           grade?: string | null
           id?: string
+          last_login_at?: string | null
+          last_logout_at?: string | null
+          last_seen_at?: string | null
+          login_count?: number
           school?: string | null
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1437,11 +1461,114 @@ export type Database = {
         }
         Relationships: []
       }
+      user_warnings: {
+        Row: {
+          acknowledged_at: string | null
+          category: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          issued_at: string
+          issued_by: string
+          message: string | null
+          reason: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          revocation_note: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          severity: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          category: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string
+          issued_by: string
+          message?: string | null
+          reason: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          revocation_note?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          severity?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          category?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string
+          issued_by?: string
+          message?: string | null
+          reason?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          revocation_note?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          severity?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      acknowledge_warning: { Args: { _warning_id: string }; Returns: undefined }
+      admin_dashboard_summary: { Args: never; Returns: Json }
+      admin_user_detail: { Args: { _user_id: string }; Returns: Json }
+      admin_user_overview: {
+        Args: never
+        Returns: {
+          account_status: string
+          ai_count: number
+          ai_errors: number
+          ai_last_at: string
+          ai_today: number
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          last_activity_at: string
+          last_login_at: string
+          last_logout_at: string
+          last_seen_at: string
+          login_count: number
+          role: string
+          warnings_active: number
+          warnings_total: number
+        }[]
+      }
+      admin_users_page: {
+        Args: {
+          _ai?: string
+          _dir?: string
+          _limit?: number
+          _offset?: number
+          _presence?: string
+          _q?: string
+          _role?: string
+          _sort?: string
+          _status?: string
+          _warned?: boolean
+        }
+        Returns: Json
+      }
       check_quiz_answer: {
         Args: { _answer: string; _question_id: string }
         Returns: Json
@@ -1466,6 +1593,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_activity: {
+        Args: { _event_type: string; _metadata?: Json; _session_id?: string }
+        Returns: undefined
+      }
+      record_login: {
+        Args: {
+          _method?: string
+          _platform?: string
+          _session_id: string
+          _user_agent?: string
+        }
+        Returns: Json
+      }
+      record_logout: { Args: { _session_id?: string }; Returns: undefined }
       search_learning_content: {
         Args: { _content_type?: string; _grade?: number; _q: string }
         Returns: {
@@ -1520,6 +1661,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      touch_presence: { Args: { _session_id?: string }; Returns: undefined }
     }
     Enums: {
       app_role: "student" | "teacher" | "admin"
