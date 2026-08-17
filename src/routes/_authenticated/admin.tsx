@@ -18,6 +18,7 @@ import { ShieldAlert, Users, Megaphone, BookOpen, Trash2, Sparkles, FileText, Up
 import { CAPS_SUBJECTS, GRADES, TERMS, yearRange } from "@/lib/papers";
 import { BulkPaperImporter } from "@/components/app/BulkPaperImporter";
 import { ContentUploadCenter } from "@/components/app/ContentUploadCenter";
+import { AdminUserManagement } from "@/components/app/AdminUserManagement";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -49,7 +50,7 @@ function AdminPage() {
           <TabsTrigger value="content"><Sparkles className="mr-2 h-4 w-4" /> Content</TabsTrigger>
           <TabsTrigger value="announcements"><Megaphone className="mr-2 h-4 w-4" /> Announcements</TabsTrigger>
         </TabsList>
-        <TabsContent value="users" className="mt-4"><UsersPanel /></TabsContent>
+        <TabsContent value="users" className="mt-4"><AdminUserManagement /></TabsContent>
         <TabsContent value="subjects" className="mt-4"><SubjectsPanel /></TabsContent>
         <TabsContent value="papers" className="mt-4"><PapersPanel /></TabsContent>
         <TabsContent value="ingest" className="mt-4"><ContentUploadCenter /></TabsContent>

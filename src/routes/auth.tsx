@@ -4,6 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { recordLogin } from "@/lib/activity";
 import { Logo } from "@/components/app/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +58,15 @@ function AuthPage() {
             setBusy(true);
             const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
             if (res.error) { toast.error("Google sign-in failed"); setBusy(false); return; }
-            if (!res.redirected) { navigate({ to: "/dashboard" }); }
+            if (!res.redirected) {
+              const status = await recordLogin("google");
+              if (status === "suspended") {
+                await supabase.auth.signOut();
+                setBusy(false);
+                return toast.error("This account has been suspended. Please contact LearnChief support.");
+              }
+              navigate({ to: "/dashboard" });
+            }
           }}
         >
           Continue with Google
@@ -96,6 +105,12 @@ function SignInForm({ busy, setBusy }: { busy: boolean; setBusy: (b: boolean) =>
       setBusy(false);
       // Deliberately generic: never reveal whether the account exists.
       return toast.error("Incorrect email or password.");
+    }
+    const status = await recordLogin("password");
+    if (status === "suspended") {
+      await supabase.auth.signOut();
+      setBusy(false);
+      return toast.error("This account has been suspended. Please contact LearnChief support.");
     }
     // Destination comes from the user's real role in the database, never from
     // the email they typed or anything stored in the browser.

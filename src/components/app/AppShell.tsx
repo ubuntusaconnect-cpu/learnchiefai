@@ -8,9 +8,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, BookOpen, Bot, Search, GraduationCap, Settings,
-  Shield, Bell, LogOut, Menu, X, Bookmark, FileText, Zap, Video, HardDrive,
+  Shield, LogOut, Menu, X, Bookmark, FileText, Zap, Video, HardDrive,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { WarningNotifications } from "./WarningNotifications";
+import { usePresenceHeartbeat, useActivityTracker, recordLogout } from "@/lib/activity";
 
 function navFor(role: AppRole) {
   const base = [
@@ -44,9 +46,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const items = navFor(role);
+  usePresenceHeartbeat(!!user?.id);
+  useActivityTracker(!!user?.id, path);
   const [query, setQuery] = useState("");
 
   async function signOut() {
+    await recordLogout();
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
@@ -106,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search subjects, courses, lessons…" className="pl-9" />
           </form>
-          <Button variant="ghost" size="icon"><Bell className="h-4 w-4" /></Button>
+          <WarningNotifications userId={user?.id} />
           <div className="md:hidden">
             <Avatar className="h-8 w-8"><AvatarFallback>{initials}</AvatarFallback></Avatar>
           </div>
