@@ -37,7 +37,7 @@ export async function recordLogin(method: string): Promise<"active" | "inactive"
   const { data, error } = await supabase.rpc("record_login", {
     _session_id: sessionId,
     _method: method,
-    _platform: navigator.platform ?? null,
+    _platform: navigator.platform ?? undefined,
     _user_agent: navigator.userAgent.slice(0, 400),
   });
   if (error) {
@@ -51,7 +51,7 @@ export async function recordLogin(method: string): Promise<"active" | "inactive"
 /** Records an explicit sign-out. Never called for tab closes or lost connections. */
 export async function recordLogout(): Promise<void> {
   const sessionId = typeof window === "undefined" ? null : sessionStorage.getItem(SESSION_KEY);
-  const { error } = await supabase.rpc("record_logout", { _session_id: sessionId });
+  const { error } = await supabase.rpc("record_logout", { _session_id: sessionId ?? undefined });
   if (error) console.error("[activity] logout not recorded", error.message);
   if (typeof window !== "undefined") sessionStorage.removeItem(SESSION_KEY);
 }
@@ -63,14 +63,14 @@ export async function logActivity(
 ): Promise<void> {
   const { error } = await supabase.rpc("log_activity", {
     _event_type: eventType,
-    _session_id: currentSessionId(),
+    _session_id: currentSessionId() ?? undefined,
     _metadata: metadata as never,
   });
   if (error) console.error("[activity] event not recorded", error.message);
 }
 
 async function heartbeat() {
-  const { error } = await supabase.rpc("touch_presence", { _session_id: currentSessionId() });
+  const { error } = await supabase.rpc("touch_presence", { _session_id: currentSessionId() ?? undefined });
   if (error) console.error("[activity] presence not updated", error.message);
 }
 
